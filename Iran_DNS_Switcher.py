@@ -123,7 +123,8 @@ class IranDNSSwitcher:
         for i in range(3):
             dns_grid.columnconfigure(i, weight=1)
         
-        self.create_dns_buttons(dns_grid) # This method will be implemented later
+        # Create DNS buttons with modern styling
+        self.create_dns_buttons(dns_grid)
         
         # Control section
         control_frame = tk.Frame(main_container, bg=self.colors['bg'])
@@ -172,6 +173,55 @@ class IranDNSSwitcher:
             bg=self.colors['bg']
         )
         footer_spacer.pack()
+        
+    def create_dns_buttons(self, parent):
+        """Create modern DNS buttons"""
+        dns_colors = {
+            "Shecan": "#e74c3c",
+            "Radar": "#3498db", 
+            "Electro": "#9b59b6",
+            "Begzar": "#e67e22",
+            "403": "#34495e",
+            "Google": "#4285f4",
+            "Cloudflare": "#f38020",
+            "Auto (DHCP)": "#27ae60"
+        }
+        
+        row = 0
+        col = 0
+        
+        for dns_name, dns_values in self.dns_servers.items():
+            # Create button frame for hover effects
+            btn_frame = tk.Frame(parent, bg=self.colors['bg'])
+            btn_frame.grid(row=row, column=col, padx=8, pady=8, sticky='ew')
+            
+            # DNS button
+            color = dns_colors.get(dns_name, self.colors['primary'])
+            
+            btn = tk.Button(
+                btn_frame,
+                text=f"{dns_name}\n{dns_values[0]} | {dns_values[1]}" if dns_values[0] != "auto" else f"{dns_name}\nAutomatic Configuration",
+                font=("Segoe UI", 9, "bold"),
+                bg=color,
+                fg='white',
+                activebackground=color, # Placeholder for active background before lighten_color
+                activeforeground='white',
+                relief='flat',
+                bd=0,
+                width=18,
+                height=4,
+                cursor='hand2',
+                command=lambda name=dns_name: self.change_dns(name) # This method will be implemented later
+            )
+            btn.pack(fill='both', expand=True)
+            
+            # Hover effects will be added in a later commit
+            # self.add_hover_effect(btn, color) 
+            
+            col += 1
+            if col > 2:
+                col = 0
+                row += 1
     
     def open_github_profile(self, url):
         """Opens the given URL in the default web browser."""
@@ -181,9 +231,6 @@ class IranDNSSwitcher:
             messagebox.showerror("Error", f"Failed to open link:\n{str(e)}")
 
     # Placeholder methods for later commits
-    def create_dns_buttons(self, parent):
-        pass
-
     def lighten_color(self, color):
         pass
     
