@@ -385,10 +385,15 @@ class IranDNSSwitcher:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to get DNS information:\n{str(e)}")
     
-    # Placeholder for run method
     def run(self):
-        pass
+        """Run the application"""
+        self.root.mainloop()
 
-# Main execution block placeholder
 if __name__ == "__main__":
-    pass
+    # Check Windows OS
+    if os.name != 'nt':
+        print("This application is designed for Windows only")
+        sys.exit(1)
+    
+    app = IranDNSSwitcher()
+    app.run()
