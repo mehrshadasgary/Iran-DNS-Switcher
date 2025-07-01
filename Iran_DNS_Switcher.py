@@ -304,7 +304,7 @@ class IranDNSSwitcher:
                 self.root.quit()
             return
         
-        try: # Error handling will be more robust in next commit
+        try:
             interface_name = self.get_network_interface()
             dns_servers = self.dns_servers[dns_name]
             
@@ -347,12 +347,18 @@ class IranDNSSwitcher:
                     f"DNS successfully changed to {dns_name}\n\nPrimary: {dns_servers[0]}\nSecondary: {dns_servers[1]}"
                 )
                 
-        except Exception as e: # Basic error handling, will be refined
+        except subprocess.CalledProcessError as e:
             self.status_label.config(
                 text="✗ Error changing DNS", 
                 fg=self.colors['error']
             )
             messagebox.showerror("Error", f"Failed to change DNS:\n{str(e)}")
+        except Exception as e:
+            self.status_label.config(
+                text="✗ Unexpected error", 
+                fg=self.colors['error']
+            )
+            messagebox.showerror("Error", f"Unexpected error:\n{str(e)}")
     
     # Placeholder methods for later commits
     def show_current_dns(self):
