@@ -144,7 +144,7 @@ class IranDNSSwitcher:
             padx=20,
             pady=8,
             cursor='hand2',
-            command=self.show_current_dns # This method will be implemented later
+            command=self.show_current_dns
         )
         current_dns_btn.pack()
         
@@ -360,10 +360,32 @@ class IranDNSSwitcher:
             )
             messagebox.showerror("Error", f"Unexpected error:\n{str(e)}")
     
-    # Placeholder methods for later commits
     def show_current_dns(self):
-        pass
+        """Show current DNS configuration"""
+        try:
+            interface_name = self.get_network_interface()
+            cmd = f'netsh interface ip show config "{interface_name}"'
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
+            
+            dns_info = "Current DNS Configuration:\n\n"
+            lines = result.stdout.split('\n')
+            
+            for line in lines:
+                if 'DNS servers configured through DHCP' in line or 'Statically Configured DNS Servers' in line:
+                    dns_info += line.strip() + "\n"
+                elif line.strip() and (line.strip().replace('.', '').replace(':', '').isdigit() or 'None' in line):
+                    if not any(x in line for x in ['Configuration', 'DHCP enabled', 'IP Address']):
+                        dns_info += "    " + line.strip() + "\n"
+            
+            if len(dns_info.strip()) <= len("Current DNS Configuration:"):
+                dns_info += "No DNS information found"
+            
+            messagebox.showinfo("Current DNS", dns_info)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to get DNS information:\n{str(e)}")
     
+    # Placeholder for run method
     def run(self):
         pass
 
