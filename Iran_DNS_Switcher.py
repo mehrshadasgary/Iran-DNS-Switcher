@@ -249,17 +249,50 @@ class IranDNSSwitcher:
             webbrowser.open_new(url)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open link:\n{str(e)}")
-
-    # Placeholder methods for later commits
+    
     def is_admin(self):
-        pass
+        """Check if running with admin privileges"""
+        try:
+            return ctypes.windll.shell32.IsUserAnAdmin()
+        except:
+            return False
     
     def run_as_admin(self):
-        pass
+        """Run program with admin privileges"""
+        try:
+            ctypes.windll.shell32.ShellExecuteW(
+                None, "runas", sys.executable, " ".join(sys.argv), None, 1
+            )
+        except:
+            messagebox.showerror("Error", "Failed to run as administrator")
     
     def get_network_interface(self):
-        pass
-    
+        """Get active network interface name"""
+        try:
+            cmd = 'netsh interface show interface'
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
+            
+            lines = result.stdout.split('\n')
+            for line in lines:
+                if 'Connected' in line and 'Dedicated' in line:
+                    parts = line.split()
+                    if len(parts) >= 4:
+                        return ' '.join(parts[3:])
+            
+            # Fallback method
+            cmd = 'wmic path win32_networkadapter where NetEnabled=true get NetConnectionID /value'
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
+            
+            for line in result.stdout.split('\n'):
+                if line.startswith('NetConnectionID=') and line.strip() != 'NetConnectionID=':
+                    return line.split('=')[1].strip()
+            
+            return "Wi-Fi"  # Default
+            
+        except Exception as e:
+            return "Wi-Fi"  # Default fallback
+
+    # Placeholder methods for later commits
     def change_dns(self, dns_name):
         pass
     
