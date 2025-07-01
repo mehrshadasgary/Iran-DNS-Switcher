@@ -211,7 +211,7 @@ class IranDNSSwitcher:
                 width=18,
                 height=4,
                 cursor='hand2',
-                command=lambda name=dns_name: self.change_dns(name) # This method will be implemented later
+                command=lambda name=dns_name: self.change_dns(name)
             )
             btn.pack(fill='both', expand=True)
             
@@ -291,11 +291,70 @@ class IranDNSSwitcher:
             
         except Exception as e:
             return "Wi-Fi"  # Default fallback
-
-    # Placeholder methods for later commits
-    def change_dns(self, dns_name):
-        pass
     
+    def change_dns(self, dns_name):
+        """Change DNS settings"""
+        if not self.is_admin():
+            response = messagebox.askyesno(
+                "Administrator Access Required",
+                "This application needs administrator privileges to change DNS settings.\n\nWould you like to restart as administrator?"
+            )
+            if response:
+                self.run_as_admin()
+                self.root.quit()
+            return
+        
+        try: # Error handling will be more robust in next commit
+            interface_name = self.get_network_interface()
+            dns_servers = self.dns_servers[dns_name]
+            
+            self.status_label.config(
+                text=f"Changing to {dns_name}...", 
+                fg=self.colors['warning']
+            )
+            self.root.update()
+            
+            if dns_servers[0] == "auto":
+                # Set automatic DNS
+                cmd1 = f'netsh interface ip set dns "{interface_name}" dhcp'
+                subprocess.run(cmd1, shell=True, check=True)
+                
+                self.status_label.config(
+                    text=f"✓ Successfully changed to Automatic DNS", 
+                    fg=self.colors['success']
+                )
+                messagebox.showinfo(
+                    "Success", 
+                    f"DNS successfully changed to Automatic (DHCP)"
+                )
+            else:
+                # Set manual DNS
+                cmd1 = f'netsh interface ip set dns "{interface_name}" static {dns_servers[0]}'
+                cmd2 = f'netsh interface ip add dns "{interface_name}" {dns_servers[1]} index=2'
+                
+                subprocess.run(cmd1, shell=True, check=True)
+                subprocess.run(cmd2, shell=True, check=True)
+                
+                # Flush DNS cache
+                subprocess.run('ipconfig /flushdns', shell=True)
+                
+                self.status_label.config(
+                    text=f"✓ Successfully changed to {dns_name}", 
+                    fg=self.colors['success']
+                )
+                messagebox.showinfo(
+                    "Success", 
+                    f"DNS successfully changed to {dns_name}\n\nPrimary: {dns_servers[0]}\nSecondary: {dns_servers[1]}"
+                )
+                
+        except Exception as e: # Basic error handling, will be refined
+            self.status_label.config(
+                text="✗ Error changing DNS", 
+                fg=self.colors['error']
+            )
+            messagebox.showerror("Error", f"Failed to change DNS:\n{str(e)}")
+    
+    # Placeholder methods for later commits
     def show_current_dns(self):
         pass
     
