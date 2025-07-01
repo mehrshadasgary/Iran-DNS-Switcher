@@ -4,16 +4,16 @@ import subprocess
 import sys
 import ctypes
 import os
-import webbrowser 
+import webbrowser # Import the webbrowser module
 
-class IranDNSSwitcher :
+class IranDNSSwitcher:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Iran DNS Switcher v1.0")
         self.root.geometry("600x550")
         self.root.resizable(False, False)
         
-        # color scheme
+        # Modern color scheme
         self.colors = {
             'bg': '#1e1e2e',
             'surface': '#313244',
@@ -76,6 +76,21 @@ class IranDNSSwitcher :
         )
         dev_label.pack(side=tk.LEFT) # Pack to the left
         
+        # GitHub Link Label
+        github_link = tk.Label(
+            info_frame,
+            text="github.com/mehrshadasgary", # GitHub URL
+            font=("Segoe UI", 10, "underline"), # Underline for link appearance
+            bg=self.colors['bg'],
+            fg=self.colors['primary'], # A different color to indicate it's a link
+            cursor="hand2" # Change cursor to hand when hovering
+        )
+        github_link.pack(side=tk.LEFT) # Pack to the left, next to the dev_label
+        
+        # Bind the click event to the GitHub link label
+        # When clicked, it will call open_github_profile with your GitHub URL
+        github_link.bind("<Button-1>", lambda e: self.open_github_profile("https://github.com/mehrshadasgary"))
+        
         # Subtitle
         subtitle_label = tk.Label(
             header_frame,
@@ -86,7 +101,6 @@ class IranDNSSwitcher :
         )
         subtitle_label.pack(pady=(5, 0))
         
-        # Placeholders for methods that will be implemented in later commits
         # DNS Grid section
         dns_section = tk.Frame(main_container, bg=self.colors['bg'])
         dns_section.pack(fill='x', pady=(0, 20))
@@ -158,6 +172,13 @@ class IranDNSSwitcher :
             bg=self.colors['bg']
         )
         footer_spacer.pack()
+    
+    def open_github_profile(self, url):
+        """Opens the given URL in the default web browser."""
+        try:
+            webbrowser.open_new(url)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open link:\n{str(e)}")
 
     # Placeholder methods for later commits
     def create_dns_buttons(self, parent):
@@ -167,9 +188,6 @@ class IranDNSSwitcher :
         pass
     
     def add_hover_effect(self, button, original_color):
-        pass
-
-    def open_github_profile(self, url):
         pass
     
     def is_admin(self):
