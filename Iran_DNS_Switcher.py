@@ -204,7 +204,7 @@ class IranDNSSwitcher:
                 font=("Segoe UI", 9, "bold"),
                 bg=color,
                 fg='white',
-                activebackground=color, # Placeholder for active background before lighten_color
+                activebackground=self.lighten_color(color),
                 activeforeground='white',
                 relief='flat',
                 bd=0,
@@ -215,14 +215,34 @@ class IranDNSSwitcher:
             )
             btn.pack(fill='both', expand=True)
             
-            # Hover effects will be added in a later commit
-            # self.add_hover_effect(btn, color) 
+            # Hover effects
+            self.add_hover_effect(btn, color)
             
             col += 1
             if col > 2:
                 col = 0
                 row += 1
     
+    def lighten_color(self, color):
+        """Lighten a hex color"""
+        color = color.lstrip('#')
+        rgb = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        rgb = tuple(min(255, int(c * 1.2)) for c in rgb)
+        return '#{:02x}{:02x}{:02x}'.format(*rgb)
+    
+    def add_hover_effect(self, button, original_color):
+        """Add hover effects to buttons"""
+        hover_color = self.lighten_color(original_color)
+        
+        def on_enter(e):
+            button.config(bg=hover_color)
+        
+        def on_leave(e):
+            button.config(bg=original_color)
+        
+        button.bind("<Enter>", on_enter)
+        button.bind("<Leave>", on_leave)
+
     def open_github_profile(self, url):
         """Opens the given URL in the default web browser."""
         try:
@@ -231,12 +251,6 @@ class IranDNSSwitcher:
             messagebox.showerror("Error", f"Failed to open link:\n{str(e)}")
 
     # Placeholder methods for later commits
-    def lighten_color(self, color):
-        pass
-    
-    def add_hover_effect(self, button, original_color):
-        pass
-    
     def is_admin(self):
         pass
     
