@@ -4,7 +4,7 @@ import subprocess
 import sys
 import ctypes
 import os
-import webbrowser # Import the webbrowser module
+import webbrowser 
 
 class IranDNSSwitcher:
     def __init__(self):
@@ -13,27 +13,14 @@ class IranDNSSwitcher:
         self.root.geometry("600x550")
         self.root.resizable(False, False)
         
-        # Set the application icon for the window title bar
-        # مطمئن شوید که فایل آیکون (Logo-IranDnsSwitcher.ico) در کنار فایل اسکریپت قرار دارد
-        # یا مسیر کامل آن را مشخص کنید.
         try:
-            # این خط آیکون پنجره را در ویندوز تنظیم می کند
             icon_path = os.path.join(os.path.dirname(__file__), "Logo-IranDnsSwitcher.ico")
             if os.path.exists(icon_path):
                 self.root.iconbitmap(icon_path)
             else:
                 print(f"Warning: Icon file not found at {icon_path}")
         except tk.TclError as e:
-            # در صورت خطا یا عدم پشتیبانی iconbitmap (مثلاً در سیستم عامل های غیر ویندوز)
-            # می توانید پیام خطا را چاپ کنید یا از iconphoto استفاده کنید اگر فایل PNG دارید.
             print(f"Error setting iconbitmap: {e}. This might happen on non-Windows systems or if the .ico file is invalid.")
-            # اگر یک فایل PNG برای آیکون دارید و می خواهید از آن برای سیستم عامل های دیگر استفاده کنید،
-            # می توانید کد زیر را فعال کنید (با فرض وجود 'Logo-IranDnsSwitcher.png'):
-            # try:
-            #     photo = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "Logo-IranDnsSwitcher.png"))
-            #     self.root.iconphoto(False, photo)
-            # except Exception as e_photo:
-            #     print(f"Warning: Could not set iconphoto: {e_photo}")
 
         # Modern color scheme
         self.colors = {
