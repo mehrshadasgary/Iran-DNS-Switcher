@@ -1,44 +1,69 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+import customtkinter as ctk
+from tkinter import messagebox 
 import subprocess
 import sys
 import ctypes
 import os
-import webbrowser 
+import webbrowser
 
 class IranDNSSwitcher:
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("Iran DNS Switcher v1.0")
-        self.root.geometry("600x550")
+        # --- Theme and Appearance ---
+        ctk.set_appearance_mode("dark")  
+        ctk.set_default_color_theme("blue") 
+
+        self.root = ctk.CTk()
+        self.root.title("Iran DNS Switcher")
+        self.root.geometry("700x650")
         self.root.resizable(False, False)
-        
+
+        # --- Icon ---
         try:
-            icon_path = os.path.join(os.path.dirname(__file__), "Logo-IranDnsSwitcher.ico")
+         
+            base_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+            icon_path = os.path.join(base_dir, "Logo-IranDnsSwitcher.ico")
             if os.path.exists(icon_path):
                 self.root.iconbitmap(icon_path)
             else:
                 print(f"Warning: Icon file not found at {icon_path}")
-        except tk.TclError as e:
+        except Exception as e:
             print(f"Error setting iconbitmap: {e}. This might happen on non-Windows systems or if the .ico file is invalid.")
 
-        # Modern color scheme
+        # --- Color ---
         self.colors = {
-            'bg': '#1e1e2e',
-            'surface': '#313244',
-            'primary': '#89b4fa',
-            'secondary': '#a6e3a1',
-            'accent': '#f38ba8',
-            'text': '#cdd6f4',
-            'text_dim': '#9399b2',
-            'success': '#a6e3a1',
-            'error': '#f38ba8',
-            'warning': '#fab387'
+            'app_bg': '#242424',
+            'frame_bg': '#2E2E2E',
+            
+            'primary_accent_main_red': '#D32F2F',
+            'primary_accent_hover_red': '#E57373',
+            'primary_accent_pressed_red': '#B71C1C',
+
+            'secondary_accent_gray': '#757575',
+            'secondary_accent_gray_hover': '#9E9E9E',
+            
+            'text_primary': '#F5F5F5',      
+            'text_secondary': '#BDBDBD',
+            
+            'success': '#4CAF50',
+            'error': '#FF5252',
+            'warning': '#FFC107',
+
+            
+            "dns_foreign_purple": "#8E44AD",
+            "dns_auto": "#757575",
         }
-        
-        self.root.configure(bg=self.colors['bg'])
-        
-        # DNS servers dictionary
+
+        # --- Fonts ---
+        self.font_title = ctk.CTkFont(family="Segoe UI", size=36, weight="bold")
+        self.font_subtitle = ctk.CTkFont(family="Segoe UI", size=12)
+        self.font_info_text = ctk.CTkFont(family="Segoe UI", size=11)
+        self.font_info_link = ctk.CTkFont(family="Segoe UI", size=11, underline=True)
+        self.font_section_title = ctk.CTkFont(family="Segoe UI", size=16, weight="bold")
+        self.font_button_main = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
+        self.font_status_label = ctk.CTkFont(family="Segoe UI", size=11)
+        self.font_dns_button_name = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
+
+        # --- DNS Servers ---
         self.dns_servers = {
             "Shecan": ["178.22.122.100", "185.51.200.2"],
             "Radar": ["10.202.10.10", "10.202.10.11"],
@@ -50,224 +75,189 @@ class IranDNSSwitcher:
             "Auto (DHCP)": ["auto", "auto"]
         }
         
-        self.setup_ui() 
+        self.setup_ui()
         
     def setup_ui(self):
-        # Main container
-        main_container = tk.Frame(self.root, bg=self.colors['bg'])
-        main_container.pack(fill='both', expand=True, padx=30, pady=20)
+        main_container = ctk.CTkFrame(self.root, fg_color=self.colors['app_bg']) 
+        main_container.pack(fill='both', expand=True, padx=20, pady=20)
         
-        # Header section
-        header_frame = tk.Frame(main_container, bg=self.colors['bg'])
-        header_frame.pack(fill='x', pady=(0, 30))
+        # --- Header ---
+        header_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        header_frame.pack(fill='x', pady=(0, 25))
         
-        # Title
-        title_label = tk.Label(
+        title_label = ctk.CTkLabel(
             header_frame,
             text="Iran DNS Switcher",
-            font=("Segoe UI", 24, "bold"),
-            bg=self.colors['bg'],
-            fg=self.colors['primary']
+            font=self.font_title,
+            text_color=self.colors['text_primary'] 
         )
-        title_label.pack()
+        title_label.pack(pady=(0,5))
         
-        # Version and Developer info in one line
-        info_frame = tk.Frame(header_frame, bg=self.colors['bg'])
-        info_frame.pack(pady=(5, 0))
+        info_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
+        info_frame.pack(pady=(0, 10))
         
-        # Modified: Separating developer info and GitHub link for clickability
-        dev_label = tk.Label(
+        dev_label = ctk.CTkLabel(
             info_frame,
-            text="v1.0 | Developed by Mehrshad | ", # Developer info
-            font=("Segoe UI", 10),
-            bg=self.colors['bg'],
-            fg=self.colors['text_dim']
+            # Version
+            text="v2.0 | Developed by Mehrshad Asgary | ",
+            font=self.font_info_text,
+            text_color=self.colors['text_secondary']
         )
-        dev_label.pack(side=tk.LEFT) # Pack to the left
+        dev_label.pack(side=ctk.LEFT)
         
-        # GitHub Link Label
-        github_link = tk.Label(
+        contact_link = ctk.CTkLabel(
             info_frame,
-            text="github.com/mehrshadasgary", # GitHub URL
-            font=("Segoe UI", 10, "underline"), # Underline for link appearance
-            bg=self.colors['bg'],
-            fg=self.colors['primary'], # A different color to indicate it's a link
-            cursor="hand2" # Change cursor to hand when hovering
+            text="Contact Me",
+            font=self.font_info_link,
+            text_color=self.colors['primary_accent_hover_red'],
+            cursor="hand2"
         )
-        github_link.pack(side=tk.LEFT) # Pack to the left, next to the dev_label
+        contact_link.pack(side=ctk.LEFT)
+        # Contact me
+        contact_link.bind("<Button-1>", lambda e: self.open_link("https://mehrshadasgary.ir"))
         
-        # Bind the click event to the GitHub link label
-        # When clicked, it will call open_github_profile with your GitHub URL
-        github_link.bind("<Button-1>", lambda e: self.open_github_profile("https://github.com/mehrshadasgary"))
-        
-        # Subtitle
-        subtitle_label = tk.Label(
+        subtitle_label = ctk.CTkLabel(
             header_frame,
             text="Fast & Easy DNS Configuration for Iran",
-            font=("Segoe UI", 11),
-            bg=self.colors['bg'],
-            fg=self.colors['text_dim']
+            font=self.font_subtitle,
+            text_color=self.colors['text_secondary']
         )
-        subtitle_label.pack(pady=(5, 0))
+        subtitle_label.pack()
         
-        # DNS Grid section
-        dns_section = tk.Frame(main_container, bg=self.colors['bg'])
-        dns_section.pack(fill='x', pady=(0, 20))
-        
-        # Section title
-        section_title = tk.Label(
-            dns_section,
+        # --- DNS grade ---
+        dns_section_frame = ctk.CTkFrame(main_container, fg_color=self.colors['frame_bg'], corner_radius=10)
+        dns_section_frame.pack(fill='x', pady=(0, 25), ipady=10)
+
+        section_title = ctk.CTkLabel(
+            dns_section_frame,
             text="Select DNS Provider:",
-            font=("Segoe UI", 12, "bold"),
-            bg=self.colors['bg'],
-            fg=self.colors['text']
+            font=self.font_section_title,
+            text_color=self.colors['text_primary']
         )
-        section_title.pack(anchor='w', pady=(0, 15))
+        section_title.pack(anchor='w', pady=(10, 15), padx=15)
         
-        # DNS buttons grid
-        dns_grid = tk.Frame(dns_section, bg=self.colors['bg'])
-        dns_grid.pack(fill='x')
+        dns_grid = ctk.CTkFrame(dns_section_frame, fg_color="transparent")
+        dns_grid.pack(fill='x', padx=15, pady=(0,10))
         
-        # Configure grid weights
         for i in range(3):
-            dns_grid.columnconfigure(i, weight=1)
+            dns_grid.columnconfigure(i, weight=1, minsize=180)
         
-        # Create DNS buttons with modern styling
         self.create_dns_buttons(dns_grid)
         
-        # Control section
-        control_frame = tk.Frame(main_container, bg=self.colors['bg'])
-        control_frame.pack(fill='x', pady=(20, 15))
+        # --- Control ---
+        control_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        control_frame.pack(fill='x', pady=(0, 15))
         
-        # Current DNS button
-        current_dns_btn = tk.Button(
+        current_dns_btn = ctk.CTkButton(
             control_frame,
             text="Show Current DNS",
-            font=("Segoe UI", 10),
-            bg=self.colors['surface'],
-            fg=self.colors['text'],
-            activebackground=self.colors['primary'],
-            activeforeground=self.colors['bg'],
-            relief='flat',
-            bd=0,
-            padx=20,
-            pady=8,
-            cursor='hand2',
-            command=self.show_current_dns
+            font=self.font_button_main,
+            fg_color=self.colors['secondary_accent_gray'],
+            hover_color=self.colors['secondary_accent_gray_hover'],
+            text_color=self.colors['text_primary'],
+            command=self.show_current_dns,
+            height=40,
+            width=200,
+            corner_radius=8
         )
         current_dns_btn.pack()
         
-        # Status section
-        status_frame = tk.Frame(main_container, bg=self.colors['bg'])
-        status_frame.pack(fill='x', pady=(10, 20))
+        # --- Status ---
+        status_frame = ctk.CTkFrame(main_container, fg_color="transparent") 
+        status_frame.pack(fill='x', pady=(0, 10))
         
-        # Status label
-        self.status_label = tk.Label(
+        self.status_label = ctk.CTkLabel(
             status_frame,
             text="Ready to change DNS",
-            font=("Segoe UI", 10),
-            bg=self.colors['bg'],
-            fg=self.colors['success']
+            font=self.font_status_label,
+            text_color=self.colors['success']
         )
         self.status_label.pack()
-        
-        # Footer (can be removed since info is now in header)
-        footer_frame = tk.Frame(main_container, bg=self.colors['bg'])
-        footer_frame.pack(fill='x', pady=(20, 0))
-        
-        # Just a simple line or empty space
-        footer_spacer = tk.Label(
-            footer_frame,
-            text="",
-            bg=self.colors['bg']
-        )
-        footer_spacer.pack()
-        
-    def create_dns_buttons(self, parent):
-        """Create modern DNS buttons"""
-        dns_colors = {
-            "Shecan": "#e74c3c",
-            "Radar": "#3498db", 
-            "Electro": "#9b59b6",
-            "Begzar": "#e67e22",
-            "403": "#34495e",
-            "Google": "#4285f4",
-            "Cloudflare": "#f38020",
-            "Auto (DHCP)": "#27ae60"
+
+    def create_dns_buttons(self, parent_frame):
+        iranian_dns_color = self.colors['primary_accent_main_red']
+        foreign_dns_color = self.colors['dns_foreign_purple']
+        auto_dns_color = self.colors['dns_auto']
+
+        dns_button_colors_map = {
+            "Shecan": iranian_dns_color,
+            "Radar": iranian_dns_color,
+            "Electro": iranian_dns_color,
+            "Begzar": iranian_dns_color,
+            "403": iranian_dns_color,
+            "Google": foreign_dns_color,
+            "Cloudflare": foreign_dns_color,
+            "Auto (DHCP)": auto_dns_color
         }
-        
-        row = 0
-        col = 0
-        
-        for dns_name, dns_values in self.dns_servers.items():
-            # Create button frame for hover effects
-            btn_frame = tk.Frame(parent, bg=self.colors['bg'])
-            btn_frame.grid(row=row, column=col, padx=8, pady=8, sticky='ew')
+
+        row, col = 0, 0
+        button_height = 70
+
+        for i, (dns_name, dns_values) in enumerate(self.dns_servers.items()):
+            base_color = dns_button_colors_map.get(dns_name, self.colors['primary_accent_main_red'])
             
-            # DNS button
-            color = dns_colors.get(dns_name, self.colors['primary'])
-            
-            btn = tk.Button(
-                btn_frame,
-                text=f"{dns_name}\n{dns_values[0]} | {dns_values[1]}" if dns_values[0] != "auto" else f"{dns_name}\nAutomatic Configuration",
-                font=("Segoe UI", 9, "bold"),
-                bg=color,
-                fg='white',
-                activebackground=self.lighten_color(color),
-                activeforeground='white',
-                relief='flat',
-                bd=0,
-                width=18,
-                height=4,
-                cursor='hand2',
-                command=lambda name=dns_name: self.change_dns(name)
+            if dns_name == "Auto (DHCP)":
+                 hover_color = self.colors['secondary_accent_gray_hover']
+            else:
+                hover_color = self.lighten_hex_color(base_color, 0.15)
+
+            button_text = f"{dns_name}\n"
+            if dns_values[0] != "auto":
+                button_text += f"{dns_values[0]} | {dns_values[1]}"
+            else:
+                button_text += "Automatic Configuration"
+
+            btn = ctk.CTkButton(
+                parent_frame,
+                text=button_text,
+                font=self.font_dns_button_name, 
+                fg_color=base_color,
+                hover_color=hover_color,
+                text_color=self.colors['text_primary'],
+                command=lambda name=dns_name: self.change_dns(name),
+                height=button_height,
+                corner_radius=8,
             )
-            btn.pack(fill='both', expand=True)
-            
-            # Hover effects
-            self.add_hover_effect(btn, color)
+            btn.grid(row=row, column=col, padx=5, pady=5, sticky='ew')
             
             col += 1
             if col > 2:
                 col = 0
                 row += 1
-    
-    def lighten_color(self, color):
-        """Lighten a hex color"""
-        color = color.lstrip('#')
-        rgb = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
-        rgb = tuple(min(255, int(c * 1.2)) for c in rgb)
-        return '#{:02x}{:02x}{:02x}'.format(*rgb)
-    
-    def add_hover_effect(self, button, original_color):
-        """Add hover effects to buttons"""
-        hover_color = self.lighten_color(original_color)
         
-        def on_enter(e):
-            button.config(bg=hover_color)
-        
-        def on_leave(e):
-            button.config(bg=original_color)
-        
-        button.bind("<Enter>", on_enter)
-        button.bind("<Leave>", on_leave)
+        total_buttons = len(self.dns_servers)
+        if total_buttons % 3 != 0:
+            remaining_cols = 3 - (total_buttons % 3)
+            for i in range(remaining_cols):
+                empty_frame = ctk.CTkFrame(parent_frame, fg_color="transparent", width=10, height=10)
+                empty_frame.grid(row=row, column=col + i, padx=5, pady=5, sticky='ew')
 
-    def open_github_profile(self, url):
-        """Opens the given URL in the default web browser."""
+    def lighten_hex_color(self, hex_color, factor=0.2):
+        if not hex_color.startswith('#'): return hex_color
+        
+        hex_color = hex_color.lstrip('#')
+        rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        
+        new_rgb = []
+        for val in rgb:
+            new_val = int(val + (255 - val) * factor)
+            new_rgb.append(min(255, max(0, new_val)))
+            
+        return '#{:02x}{:02x}{:02x}'.format(*new_rgb)
+
+    def open_link(self, url):
         try:
             webbrowser.open_new(url)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open link:\n{str(e)}")
-    
+
     def is_admin(self):
-        """Check if running with admin privileges"""
         try:
             return ctypes.windll.shell32.IsUserAnAdmin()
         except:
             return False
     
     def run_as_admin(self):
-        """Run program with admin privileges"""
         try:
             ctypes.windll.shell32.ShellExecuteW(
                 None, "runas", sys.executable, " ".join(sys.argv), None, 1
@@ -276,33 +266,59 @@ class IranDNSSwitcher:
             messagebox.showerror("Error", "Failed to run as administrator")
     
     def get_network_interface(self):
-        """Get active network interface name"""
+        cli_encoding = 'oem'
         try:
-            cmd = 'netsh interface show interface'
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
+            cmd_netsh = 'netsh interface show interface'
+            try:
+                result_netsh = subprocess.run(cmd_netsh, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=5)
+            except UnicodeDecodeError:
+                result_netsh = subprocess.run(cmd_netsh, shell=True, capture_output=True, text=True, encoding='latin-1', errors='ignore', timeout=5)
+            except subprocess.TimeoutExpired:
+                print("Warning: 'netsh interface show interface' timed out.")
+                result_netsh = None
+
+            if result_netsh and result_netsh.stdout:
+                lines_netsh = result_netsh.stdout.split('\n')
+                for line in lines_netsh:
+                    line_lower = line.lower()
+                    if 'connected' in line_lower and \
+                       ('dedicated' in line_lower or 'ethernet' in line_lower or \
+                        'wi-fi' in line_lower or 'wireless' in line_lower) and \
+                       not 'loopback' in line_lower and not 'pseudo' in line_lower:
+                        
+                        parts = line.strip().split()
+                        if len(parts) >= 4:
+                            interface_name_candidate = " ".join(parts[3:]).strip()
+                            if interface_name_candidate:
+                                print(f"Found interface (netsh): {interface_name_candidate}")
+                                return interface_name_candidate
             
-            lines = result.stdout.split('\n')
-            for line in lines:
-                if 'Connected' in line and 'Dedicated' in line:
-                    parts = line.split()
-                    if len(parts) >= 4:
-                        return ' '.join(parts[3:])
-            
-            # Fallback method
-            cmd = 'wmic path win32_networkadapter where NetEnabled=true get NetConnectionID /value'
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
-            
-            for line in result.stdout.split('\n'):
-                if line.startswith('NetConnectionID=') and line.strip() != 'NetConnectionID=':
-                    return line.split('=')[1].strip()
-            
-            return "Wi-Fi"  # Default
+            cmd_wmic = 'wmic path win32_networkadapter where "NetConnectionID is not null and NetEnabled=true" get NetConnectionID /value'
+            try:
+                result_wmic = subprocess.run(cmd_wmic, shell=True, capture_output=True, text=True, encoding='utf-8', errors='ignore', timeout=5)
+                if result_wmic.stdout:
+                    for line_wmic in result_wmic.stdout.split('\n'):
+                        if line_wmic.strip().startswith('NetConnectionID='):
+                            interface_name_wmic = line_wmic.split('=', 1)[1].strip()
+                            if interface_name_wmic:
+                                print(f"Found interface (wmic): {interface_name_wmic}")
+                                return interface_name_wmic
+            except subprocess.TimeoutExpired:
+                print("Warning: WMIC command timed out.")
+            except Exception as e_wmic:
+                print(f"Error running or parsing WMIC: {e_wmic}")
+
+            print("Warning: Could not reliably determine active network interface. Defaulting to 'Wi-Fi'.")
+            messagebox.showwarning("Network Interface",
+                                    "Could not automatically determine the active network interface. Will attempt to use 'Wi-Fi'. You may need to manually check your interface name if DNS changes fail.")
+            return "Wi-Fi"
             
         except Exception as e:
-            return "Wi-Fi"  # Default fallback
+            print(f"Error getting network interface: {e}. Defaulting to 'Wi-Fi'.")
+            messagebox.showerror("Network Interface Error", f"An error occurred while detecting the network interface: {e}\nDefaulting to 'Wi-Fi'.")
+            return "Wi-Fi"
     
     def change_dns(self, dns_name):
-        """Change DNS settings"""
         if not self.is_admin():
             response = messagebox.askyesno(
                 "Administrator Access Required",
@@ -310,84 +326,106 @@ class IranDNSSwitcher:
             )
             if response:
                 self.run_as_admin()
-                self.root.quit()
+                if hasattr(self.root, 'destroy'): self.root.destroy()
+                else: sys.exit()
             return
         
         try:
             interface_name = self.get_network_interface()
-            dns_servers = self.dns_servers[dns_name]
+            if not interface_name:
+                messagebox.showerror("Error", "Critical: Network interface name could not be obtained.")
+                self.status_label.configure(text="✗ Error: No network interface", text_color=self.colors['error'])
+                return
+
+            dns_servers_list = self.dns_servers[dns_name]
             
-            self.status_label.config(
-                text=f"Changing to {dns_name}...", 
-                fg=self.colors['warning']
+            self.status_label.configure(
+                text=f"Changing to {dns_name} for '{interface_name}'...",
+                text_color=self.colors['warning']
             )
-            self.root.update()
+            self.root.update_idletasks()
             
-            if dns_servers[0] == "auto":
-                # Set automatic DNS
-                cmd1 = f'netsh interface ip set dns "{interface_name}" dhcp'
-                subprocess.run(cmd1, shell=True, check=True)
+            cli_encoding = 'oem'
+
+            if dns_servers_list[0] == "auto":
+                cmd_clear_static = f'netsh interface ipv4 delete dnsserver "{interface_name}" all'
+                cmd_set_dhcp = f'netsh interface ip set dns name="{interface_name}" source=dhcp'
                 
-                self.status_label.config(
-                    text=f"✓ Successfully changed to Automatic DNS", 
-                    fg=self.colors['success']
+                subprocess.run(cmd_clear_static, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
+                subprocess.run(cmd_set_dhcp, shell=True, check=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
+                
+                self.status_label.configure(
+                    text=f"✓ DNS for '{interface_name}' set to Automatic (DHCP)", 
+                    text_color=self.colors['success']
                 )
                 messagebox.showinfo(
                     "Success", 
-                    f"DNS successfully changed to Automatic (DHCP)"
+                    f"DNS successfully set to Automatic (DHCP) for interface '{interface_name}'"
                 )
             else:
-                # Set manual DNS
-                cmd1 = f'netsh interface ip set dns "{interface_name}" static {dns_servers[0]}'
-                cmd2 = f'netsh interface ip add dns "{interface_name}" {dns_servers[1]} index=2'
+                primary_dns = dns_servers_list[0]
+                secondary_dns = dns_servers_list[1]
+
+                cmd_set_primary = f'netsh interface ip set dns name="{interface_name}" static {primary_dns}'
+                cmd_add_secondary = f'netsh interface ip add dns name="{interface_name}" addr={secondary_dns} index=2'
+                cmd_flush_dns = 'ipconfig /flushdns'
                 
-                subprocess.run(cmd1, shell=True, check=True)
-                subprocess.run(cmd2, shell=True, check=True)
+                subprocess.run(cmd_set_primary, shell=True, check=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
+                subprocess.run(cmd_add_secondary, shell=True, check=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
+                subprocess.run(cmd_flush_dns, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
-                # Flush DNS cache
-                subprocess.run('ipconfig /flushdns', shell=True)
-                
-                self.status_label.config(
-                    text=f"✓ Successfully changed to {dns_name}", 
-                    fg=self.colors['success']
+                self.status_label.configure(
+                    text=f"✓ DNS for '{interface_name}' changed to {dns_name}", 
+                    text_color=self.colors['success']
                 )
                 messagebox.showinfo(
                     "Success", 
-                    f"DNS successfully changed to {dns_name}\n\nPrimary: {dns_servers[0]}\nSecondary: {dns_servers[1]}"
+                    f"DNS successfully changed to {dns_name} for interface '{interface_name}'\n\nPrimary: {primary_dns}\nSecondary: {secondary_dns}"
                 )
                 
         except subprocess.CalledProcessError as e:
-            self.status_label.config(
-                text="✗ Error changing DNS", 
-                fg=self.colors['error']
-            )
-            messagebox.showerror("Error", f"Failed to change DNS:\n{str(e)}")
+            error_details = f"Command:\n{e.cmd}\n\nReturn Code: {e.returncode}\n\nSTDOUT:\n{e.stdout}\n\nSTDERR:\n{e.stderr}"
+            full_error_message = f"A command failed to execute properly.\n\n{error_details}"
+            messagebox.showerror("Command Execution Error", full_error_message)
+            self.status_label.configure(text="✗ Error changing DNS (command failed)", text_color=self.colors['error'])
         except Exception as e:
-            self.status_label.config(
-                text="✗ Unexpected error", 
-                fg=self.colors['error']
-            )
-            messagebox.showerror("Error", f"Unexpected error:\n{str(e)}")
+            messagebox.showerror("Error", f"An unexpected error occurred during DNS change:\n{str(e)}")
+            self.status_label.configure(text="✗ Unexpected error during DNS change", text_color=self.colors['error'])
     
     def show_current_dns(self):
-        """Show current DNS configuration"""
         try:
             interface_name = self.get_network_interface()
-            cmd = f'netsh interface ip show config "{interface_name}"'
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8')
-            
-            dns_info = "Current DNS Configuration:\n\n"
+            if not interface_name:
+                 messagebox.showinfo("Current DNS", "Could not determine network interface for showing DNS.")
+                 return
+
+            cmd = f'netsh interface ip show dns name="{interface_name}"'
+            cli_encoding = 'oem'
+            try:
+                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=5)
+            except UnicodeDecodeError:
+                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='latin-1', errors='ignore', timeout=5)
+            except subprocess.TimeoutExpired:
+                messagebox.showerror("Timeout", f"Command to show DNS for '{interface_name}' timed out.")
+                return
+
+            dns_info = f"Current DNS Servers for '{interface_name}':\n\n"
             lines = result.stdout.split('\n')
             
+            dns_servers_found = []
             for line in lines:
-                if 'DNS servers configured through DHCP' in line or 'Statically Configured DNS Servers' in line:
-                    dns_info += line.strip() + "\n"
-                elif line.strip() and (line.strip().replace('.', '').replace(':', '').isdigit() or 'None' in line):
-                    if not any(x in line for x in ['Configuration', 'DHCP enabled', 'IP Address']):
-                        dns_info += "    " + line.strip() + "\n"
-            
-            if len(dns_info.strip()) <= len("Current DNS Configuration:"):
-                dns_info += "No DNS information found"
+                stripped_line = line.strip()
+                parts = stripped_line.split()
+                if len(parts) > 0 and (parts[-1].count('.') == 3 or ':' in parts[-1]):
+                    if not any(x in stripped_line.lower() for x in ['configuration for interface', 'dhcp enabled', 'register with suffix']):
+                         dns_servers_found.append(stripped_line)
+
+            if dns_servers_found:
+                 dns_info += "\n".join(dns_servers_found)
+            elif 'dhcp' in result.stdout.lower():
+                 dns_info += "DNS servers configured through DHCP."
+            else:
+                 dns_info += "No DNS servers specified."
             
             messagebox.showinfo("Current DNS", dns_info)
             
@@ -395,13 +433,11 @@ class IranDNSSwitcher:
             messagebox.showerror("Error", f"Failed to get DNS information:\n{str(e)}")
     
     def run(self):
-        """Run the application"""
         self.root.mainloop()
 
 if __name__ == "__main__":
-    # Check Windows OS
     if os.name != 'nt':
-        print("This application is designed for Windows only")
+        messagebox.showerror("Compatibility Error", "This application is designed for Windows only.")
         sys.exit(1)
     
     app = IranDNSSwitcher()
