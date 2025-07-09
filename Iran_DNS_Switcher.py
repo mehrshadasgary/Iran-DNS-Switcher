@@ -5,6 +5,7 @@ import sys
 import ctypes
 import os
 import webbrowser
+import re
 
 class IranDNSSwitcher:
     def __init__(self):
@@ -14,8 +15,10 @@ class IranDNSSwitcher:
 
         self.root = ctk.CTk()
         self.root.title("Iran DNS Switcher")
-        self.root.geometry("700x650")
         self.root.resizable(False, False)
+
+        # --- Center Window ---
+        self.center_window(700, 650)
 
         # --- Icon ---
         try:
@@ -76,6 +79,15 @@ class IranDNSSwitcher:
         }
         
         self.setup_ui()
+
+    def center_window(self, width, height):
+    
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = int((screen_width / 2) - (width / 2))
+        # Center - Up
+        y = int((screen_height / 2) - (height / 2) - 50)
+        self.root.geometry(f'{width}x{height}+{x}+{y}')
         
     def setup_ui(self):
         main_container = ctk.CTkFrame(self.root, fg_color=self.colors['app_bg']) 
@@ -99,7 +111,7 @@ class IranDNSSwitcher:
         dev_label = ctk.CTkLabel(
             info_frame,
             # Version
-            text="v2.0 | Developed by Mehrshad Asgary | ",
+            text="v2.1 | Developed by Mehrshad Asgary | ",
             font=self.font_info_text,
             text_color=self.colors['text_secondary']
         )
@@ -266,57 +278,50 @@ class IranDNSSwitcher:
             messagebox.showerror("Error", "Failed to run as administrator")
     
     def get_network_interface(self):
-        cli_encoding = 'oem'
+        
+        #  netsh interface ip show config
         try:
-            cmd_netsh = 'netsh interface show interface'
+            # fibd Gateway
+            cmd = 'netsh interface ip show config'
+            cli_encoding = 'oem' 
+            
             try:
-                result_netsh = subprocess.run(cmd_netsh, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=5)
+                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=10)
             except UnicodeDecodeError:
-                result_netsh = subprocess.run(cmd_netsh, shell=True, capture_output=True, text=True, encoding='latin-1', errors='ignore', timeout=5)
-            except subprocess.TimeoutExpired:
-                print("Warning: 'netsh interface show interface' timed out.")
-                result_netsh = None
+                # if error
+                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='latin-1', errors='ignore', timeout=10)
 
-            if result_netsh and result_netsh.stdout:
-                lines_netsh = result_netsh.stdout.split('\n')
-                for line in lines_netsh:
-                    line_lower = line.lower()
-                    if 'connected' in line_lower and \
-                       ('dedicated' in line_lower or 'ethernet' in line_lower or \
-                        'wi-fi' in line_lower or 'wireless' in line_lower) and \
-                       not 'loopback' in line_lower and not 'pseudo' in line_lower:
-                        
-                        parts = line.strip().split()
-                        if len(parts) >= 4:
-                            interface_name_candidate = " ".join(parts[3:]).strip()
-                            if interface_name_candidate:
-                                print(f"Found interface (netsh): {interface_name_candidate}")
-                                return interface_name_candidate
-            
-            cmd_wmic = 'wmic path win32_networkadapter where "NetConnectionID is not null and NetEnabled=true" get NetConnectionID /value'
-            try:
-                result_wmic = subprocess.run(cmd_wmic, shell=True, capture_output=True, text=True, encoding='utf-8', errors='ignore', timeout=5)
-                if result_wmic.stdout:
-                    for line_wmic in result_wmic.stdout.split('\n'):
-                        if line_wmic.strip().startswith('NetConnectionID='):
-                            interface_name_wmic = line_wmic.split('=', 1)[1].strip()
-                            if interface_name_wmic:
-                                print(f"Found interface (wmic): {interface_name_wmic}")
-                                return interface_name_wmic
-            except subprocess.TimeoutExpired:
-                print("Warning: WMIC command timed out.")
-            except Exception as e_wmic:
-                print(f"Error running or parsing WMIC: {e_wmic}")
+            if result.returncode == 0 and result.stdout:
+                interface_configs = result.stdout.strip().split('\n\n')
+                
+                for config in interface_configs:
+                    # Default Gateway
+                    if 'Default Gateway' in config and '127.0.0.1' not in config:
+                        gateway_line = [line for line in config.split('\n') if 'Default Gateway' in line]
+                        if gateway_line:
+                            gateway_ip = gateway_line[0].split(':')[-1].strip()
+                            if gateway_ip and gateway_ip != '0.0.0.0':
+                                match = re.search(r'Configuration for interface "(.+?)"', config)
+                                if match:
+                                    interface_name = match.group(1)
+                                    print(f"Found active interface: '{interface_name}' with gateway {gateway_ip}")
+                                    return interface_name
 
-            print("Warning: Could not reliably determine active network interface. Defaulting to 'Wi-Fi'.")
+            # Error message if no active network card is found
+            print("Warning: Could not determine active network interface with a gateway.")
             messagebox.showwarning("Network Interface",
-                                    "Could not automatically determine the active network interface. Will attempt to use 'Wi-Fi'. You may need to manually check your interface name if DNS changes fail.")
-            return "Wi-Fi"
-            
+                                    "Could not automatically determine the active network interface.\n"
+                                    "Please ensure you are connected to the internet.")
+            return None
+
+        except subprocess.TimeoutExpired:
+            print("Error: The command to find network interfaces timed out.")
+            messagebox.showerror("Error", "The command to find network interfaces timed out. Please try again.")
+            return None
         except Exception as e:
-            print(f"Error getting network interface: {e}. Defaulting to 'Wi-Fi'.")
-            messagebox.showerror("Network Interface Error", f"An error occurred while detecting the network interface: {e}\nDefaulting to 'Wi-Fi'.")
-            return "Wi-Fi"
+            print(f"Error getting network interface: {e}.")
+            messagebox.showerror("Network Interface Error", f"An unexpected error occurred while detecting the network interface: {e}")
+            return None
     
     def change_dns(self, dns_name):
         if not self.is_admin():
@@ -333,8 +338,9 @@ class IranDNSSwitcher:
         try:
             interface_name = self.get_network_interface()
             if not interface_name:
-                messagebox.showerror("Error", "Critical: Network interface name could not be obtained.")
-                self.status_label.configure(text="✗ Error: No network interface", text_color=self.colors['error'])
+                # The get_network_interface function now shows its own detailed error message.
+                # So we can just update the status label and return.
+                self.status_label.configure(text="✗ Error: No active network interface found", text_color=self.colors['error'])
                 return
 
             dns_servers_list = self.dns_servers[dns_name]
@@ -396,7 +402,7 @@ class IranDNSSwitcher:
         try:
             interface_name = self.get_network_interface()
             if not interface_name:
-                 messagebox.showinfo("Current DNS", "Could not determine network interface for showing DNS.")
+                 # Error is already shown by get_network_interface
                  return
 
             cmd = f'netsh interface ip show dns name="{interface_name}"'
@@ -415,17 +421,23 @@ class IranDNSSwitcher:
             dns_servers_found = []
             for line in lines:
                 stripped_line = line.strip()
+                # A more robust check for DNS server lines
+                if "Statically Configured DNS Servers" in line or "DNS servers configured through DHCP" in line:
+                    continue # Skip header lines
+                
+                # Check if the line seems to contain an IP address
                 parts = stripped_line.split()
                 if len(parts) > 0 and (parts[-1].count('.') == 3 or ':' in parts[-1]):
-                    if not any(x in stripped_line.lower() for x in ['configuration for interface', 'dhcp enabled', 'register with suffix']):
-                         dns_servers_found.append(stripped_line)
+                     # Avoid other config lines that might end in an IP-like string
+                     if not any(x in stripped_line.lower() for x in ['configuration for interface', 'dhcp enabled', 'register with suffix']):
+                         dns_servers_found.append(parts[-1])
 
             if dns_servers_found:
                  dns_info += "\n".join(dns_servers_found)
             elif 'dhcp' in result.stdout.lower():
-                 dns_info += "DNS servers configured through DHCP."
+                 dns_info += "DNS servers configured automatically through DHCP."
             else:
-                 dns_info += "No DNS servers specified."
+                 dns_info += "No static DNS servers specified."
             
             messagebox.showinfo("Current DNS", dns_info)
             
