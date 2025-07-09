@@ -6,6 +6,8 @@ import ctypes
 import os
 import webbrowser
 import re
+import requests
+import threading
 
 class IranDNSSwitcher:
     def __init__(self):
@@ -16,6 +18,11 @@ class IranDNSSwitcher:
         self.root = ctk.CTk()
         self.root.title("Iran DNS Switcher")
         self.root.resizable(False, False)
+
+        # --- Version and GitHub Info for Update Check ---
+        self.current_version = "v2.1"
+        self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
+    
 
         # --- Center Window ---
         self.center_window(700, 650)
@@ -80,6 +87,11 @@ class IranDNSSwitcher:
         
         self.setup_ui()
 
+        # --- Start Update Check in a Background Thread ---
+        update_thread = threading.Thread(target=self.check_for_updates, daemon=True)
+        update_thread.start()
+        # --- End of Update Check Start ---
+
     def center_window(self, width, height):
     
         screen_width = self.root.winfo_screenwidth()
@@ -110,8 +122,8 @@ class IranDNSSwitcher:
         
         dev_label = ctk.CTkLabel(
             info_frame,
-            # Version
-            text="v2.1 | Developed by Mehrshad Asgary | ",
+            # Version is now dynamic
+            text=f"{self.current_version} | Developed by Mehrshad Asgary | ",
             font=self.font_info_text,
             text_color=self.colors['text_secondary']
         )
@@ -185,6 +197,37 @@ class IranDNSSwitcher:
             text_color=self.colors['success']
         )
         self.status_label.pack()
+
+    # ---  Check for Updates ---
+    def check_for_updates(self):
+        """
+        Fetches the latest release information from GitHub API
+        and compares it with the current version.
+        """
+        try:
+            api_url = f"https://api.github.com/repos/{self.github_repo}/releases/latest"
+            response = requests.get(api_url, timeout=5)
+            response.raise_for_status()  # Raise an exception for bad status codes
+
+            latest_release_data = response.json()
+            latest_version = latest_release_data.get("tag_name")
+            release_url = latest_release_data.get("html_url")
+
+            if latest_version and latest_version > self.current_version:
+                message = (
+                    f"A new version ({latest_version}) is available!\n\n"
+                    f"You are currently using version {self.current_version}.\n\n"
+                    "Would you like to go to the download page?"
+                )
+                if messagebox.askyesno("Update Available", message):
+                    self.open_link(release_url)
+
+        except requests.exceptions.RequestException as e:
+            # Silently fail if there's a network issue, no need to bother the user.
+            print(f"Could not check for updates: {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred during update check: {e}")
+    # --- End of New Function ---
 
     def create_dns_buttons(self, parent_frame):
         iranian_dns_color = self.colors['primary_accent_main_red']
