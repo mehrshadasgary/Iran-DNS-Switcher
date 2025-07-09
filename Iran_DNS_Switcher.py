@@ -20,9 +20,8 @@ class IranDNSSwitcher:
         self.root.resizable(False, False)
 
         # --- Version and GitHub Info for Update Check ---
-        self.current_version = "v2.1"
+        self.current_version = "v2.2"
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
-    
 
         # --- Center Window ---
         self.center_window(700, 650)
@@ -171,9 +170,13 @@ class IranDNSSwitcher:
         # --- Control ---
         control_frame = ctk.CTkFrame(main_container, fg_color="transparent")
         control_frame.pack(fill='x', pady=(0, 15))
+
+        # --- Frame to hold control buttons side-by-side ---
+        button_holder_frame = ctk.CTkFrame(control_frame, fg_color="transparent")
+        button_holder_frame.pack()
         
         current_dns_btn = ctk.CTkButton(
-            control_frame,
+            button_holder_frame,
             text="Show Current DNS",
             font=self.font_button_main,
             fg_color=self.colors['secondary_accent_gray'],
@@ -181,14 +184,43 @@ class IranDNSSwitcher:
             text_color=self.colors['text_primary'],
             command=self.show_current_dns,
             height=40,
-            width=200,
+            width=190, # Adjusted width
             corner_radius=8
         )
-        current_dns_btn.pack()
+        current_dns_btn.pack(side=ctk.LEFT, padx=(0, 10))
+
+        # ---  Ping Current DNS Button ---
+        ping_current_btn = ctk.CTkButton(
+            button_holder_frame,
+            text="Ping Current DNS",
+            font=self.font_button_main,
+            fg_color=self.colors['secondary_accent_gray'],
+            hover_color=self.colors['secondary_accent_gray_hover'],
+            text_color=self.colors['text_primary'],
+            command=self.ping_current_dns,
+            height=40,
+            width=190, # Adjusted width
+            corner_radius=8
+        )
+        ping_current_btn.pack(side=ctk.LEFT, padx=(0, 10))
+
+        ping_all_btn = ctk.CTkButton(
+            button_holder_frame,
+            text="Ping All DNS",
+            font=self.font_button_main,
+            fg_color=self.colors['secondary_accent_gray'],
+            hover_color=self.colors['secondary_accent_gray_hover'],
+            text_color=self.colors['text_primary'],
+            command=self.ping_all_dns,
+            height=40,
+            width=190, 
+            corner_radius=8
+        )
+        ping_all_btn.pack(side=ctk.LEFT)
         
         # --- Status ---
         status_frame = ctk.CTkFrame(main_container, fg_color="transparent") 
-        status_frame.pack(fill='x', pady=(0, 10))
+        status_frame.pack(fill='x', pady=(10, 0))
         
         self.status_label = ctk.CTkLabel(
             status_frame,
@@ -207,7 +239,7 @@ class IranDNSSwitcher:
         try:
             api_url = f"https://api.github.com/repos/{self.github_repo}/releases/latest"
             response = requests.get(api_url, timeout=5)
-            response.raise_for_status()  # Raise an exception for bad status codes
+            response.raise_for_status()
 
             latest_release_data = response.json()
             latest_version = latest_release_data.get("tag_name")
@@ -223,11 +255,9 @@ class IranDNSSwitcher:
                     self.open_link(release_url)
 
         except requests.exceptions.RequestException as e:
-            # Silently fail if there's a network issue, no need to bother the user.
             print(f"Could not check for updates: {e}")
         except Exception as e:
             print(f"An unexpected error occurred during update check: {e}")
-    # --- End of New Function ---
 
     def create_dns_buttons(self, parent_frame):
         iranian_dns_color = self.colors['primary_accent_main_red']
@@ -239,9 +269,9 @@ class IranDNSSwitcher:
             "Radar": iranian_dns_color,
             "Electro": iranian_dns_color,
             "Begzar": iranian_dns_color,
-            "403": iranian_dns_color,
+            "403": iranian_dns_color, 
             "Google": foreign_dns_color,
-            "Cloudflare": foreign_dns_color,
+            "Cloudflare": foreign_dns_color, 
             "Auto (DHCP)": auto_dns_color
         }
 
@@ -251,27 +281,15 @@ class IranDNSSwitcher:
         for i, (dns_name, dns_values) in enumerate(self.dns_servers.items()):
             base_color = dns_button_colors_map.get(dns_name, self.colors['primary_accent_main_red'])
             
-            if dns_name == "Auto (DHCP)":
-                 hover_color = self.colors['secondary_accent_gray_hover']
-            else:
-                hover_color = self.lighten_hex_color(base_color, 0.15)
+            hover_color = self.lighten_hex_color(base_color, 0.15) if dns_name != "Auto (DHCP)" else self.colors['secondary_accent_gray_hover']
 
             button_text = f"{dns_name}\n"
-            if dns_values[0] != "auto":
-                button_text += f"{dns_values[0]} | {dns_values[1]}"
-            else:
-                button_text += "Automatic Configuration"
+            button_text += f"{dns_values[0]} | {dns_values[1]}" if dns_values[0] != "auto" else "Automatic Configuration"
 
             btn = ctk.CTkButton(
-                parent_frame,
-                text=button_text,
-                font=self.font_dns_button_name, 
-                fg_color=base_color,
-                hover_color=hover_color,
-                text_color=self.colors['text_primary'],
-                command=lambda name=dns_name: self.change_dns(name),
-                height=button_height,
-                corner_radius=8,
+                parent_frame, text=button_text, font=self.font_dns_button_name, 
+                fg_color=base_color, hover_color=hover_color, text_color=self.colors['text_primary'],
+                command=lambda name=dns_name: self.change_dns(name), height=button_height, corner_radius=8,
             )
             btn.grid(row=row, column=col, padx=5, pady=5, sticky='ew')
             
@@ -282,10 +300,168 @@ class IranDNSSwitcher:
         
         total_buttons = len(self.dns_servers)
         if total_buttons % 3 != 0:
-            remaining_cols = 3 - (total_buttons % 3)
-            for i in range(remaining_cols):
-                empty_frame = ctk.CTkFrame(parent_frame, fg_color="transparent", width=10, height=10)
-                empty_frame.grid(row=row, column=col + i, padx=5, pady=5, sticky='ew')
+            for i in range(3 - (total_buttons % 3)):
+                ctk.CTkFrame(parent_frame, fg_color="transparent", width=10, height=10).grid(row=row, column=col + i, padx=5, pady=5, sticky='ew')
+
+    # --- Ping Functionality ---
+    def ping_dns_server(self, ip_address):
+        """
+        Pings a given IP address and returns a tuple:
+        (latency_in_ms: float, display_string: str)
+        """
+        if sys.platform == "win32":
+            command = ["ping", "-n", "1", "-w", "1000", ip_address]
+        else:
+            command = ["ping", "-c", "1", "-W", "1", ip_address]
+
+        try:
+            startupinfo = None
+            if sys.platform == "win32":
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = subprocess.SW_HIDE
+
+            result = subprocess.run(
+                command, capture_output=True, text=True, encoding='oem', 
+                errors='ignore', timeout=2, startupinfo=startupinfo
+            )
+            output = result.stdout
+
+            if result.returncode == 0:
+                match = re.search(r"time(?:<|=)(\d+(?:\.\d+)?)ms", output)
+                if match:
+                    latency = float(match.group(1))
+                    return latency, f"{int(latency)} ms"
+            
+            if "Request timed out" in output or "Destination host unreachable" in output:
+                return float('inf'), "Timeout"
+
+            return float('inf'), "Failed"
+
+        except subprocess.TimeoutExpired:
+            return float('inf'), "Timeout"
+        except Exception as e:
+            print(f"Ping error for {ip_address}: {e}")
+            return float('inf'), "Error"
+
+    def ping_all_dns(self):
+        """Initiates pinging all available DNS servers in a separate thread."""
+        self.status_label.configure(text="Pinging all DNS servers...", text_color=self.colors['warning'])
+        self.root.update_idletasks()
+        ping_all_thread = threading.Thread(target=self._ping_all_dns_threaded, daemon=True)
+        ping_all_thread.start()
+
+    def _ping_all_dns_threaded(self):
+        """Internal method to perform pings for all DNS servers and update UI."""
+        ping_results = []
+        for name, ips in self.dns_servers.items():
+            if ips[0] != "auto":
+                primary_ip = ips[0]
+                self.root.after(0, lambda n=name: self.status_label.configure(text=f"Pinging {n}..."))
+                latency, display_string = self.ping_dns_server(primary_ip)
+                ping_results.append({
+                    'name': name, 'ip': primary_ip,
+                    'latency': latency, 'display': display_string
+                })
+        
+        sorted_results = sorted(ping_results, key=lambda x: x['latency'])
+        self.root.after(0, lambda: self._update_all_ping_results_ui(sorted_results))
+
+    def _update_all_ping_results_ui(self, results):
+        """Creates a new window to display ping results for all DNS servers."""
+        if hasattr(self, 'all_ping_window') and self.all_ping_window.winfo_exists():
+            self.all_ping_window.destroy()
+
+        self.all_ping_window = ctk.CTkToplevel(self.root)
+        self.all_ping_window.title("All DNS Ping Results")
+        self.all_ping_window.geometry("450x400")
+        self.all_ping_window.resizable(False, False)
+        self.all_ping_window.attributes("-topmost", True)
+        self.all_ping_window.transient(self.root)
+
+        dialog_frame = ctk.CTkFrame(self.all_ping_window, fg_color=self.colors['frame_bg'])
+        dialog_frame.pack(expand=True, fill="both", padx=20, pady=20)
+
+        ctk.CTkLabel(dialog_frame, text="Ping Results (Sorted by Latency):", 
+                     font=self.font_section_title, text_color=self.colors['text_primary']).pack(anchor='w', pady=(0,10))
+
+        results_frame = ctk.CTkScrollableFrame(dialog_frame, fg_color="transparent")
+        results_frame.pack(fill='both', expand=True, pady=(0, 10))
+
+        header_font = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
+        results_frame.columnconfigure(0, weight=2)
+        results_frame.columnconfigure(1, weight=1)
+        results_frame.columnconfigure(2, weight=1)
+
+        ctk.CTkLabel(results_frame, text="DNS Name", font=header_font, text_color=self.colors['text_secondary']).grid(row=0, column=0, padx=5, pady=2, sticky='w')
+        ctk.CTkLabel(results_frame, text="Primary IP", font=header_font, text_color=self.colors['text_secondary']).grid(row=0, column=1, padx=5, pady=2, sticky='w')
+        ctk.CTkLabel(results_frame, text="Latency", font=header_font, text_color=self.colors['text_secondary']).grid(row=0, column=2, padx=5, pady=2, sticky='w')
+
+        for i, res in enumerate(results):
+            row_num = i + 1
+            text_color = self.colors['success'] if "ms" in res['display'] else self.colors['error']
+            ctk.CTkLabel(results_frame, text=res['name'], font=self.font_info_text, text_color=self.colors['text_primary']).grid(row=row_num, column=0, padx=5, pady=1, sticky='w')
+            ctk.CTkLabel(results_frame, text=res['ip'], font=self.font_info_text, text_color=self.colors['text_primary']).grid(row=row_num, column=1, padx=5, pady=1, sticky='w')
+            ctk.CTkLabel(results_frame, text=res['display'], font=self.font_info_text, text_color=text_color).grid(row=row_num, column=2, padx=5, pady=1, sticky='w')
+        
+        close_btn = ctk.CTkButton(
+            dialog_frame, text="Close", command=self.all_ping_window.destroy,
+            font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'],
+            hover_color=self.colors['secondary_accent_gray_hover']
+        )
+        close_btn.pack(pady=(10,0))
+
+        self.status_label.configure(text="Ping test complete. Results are ready.", text_color=self.colors['success'])
+
+    # --- New: Ping Current DNS Functionality ---
+    def ping_current_dns(self):
+        """Pings the currently configured primary DNS server."""
+        self.status_label.configure(text="Pinging current DNS...", text_color=self.colors['warning'])
+        self.root.update_idletasks()
+        ping_thread = threading.Thread(target=self._ping_current_dns_threaded, daemon=True)
+        ping_thread.start()
+
+    def _get_current_dns_ips(self):
+        """Gets current DNS IPs without showing a message box. Returns a list."""
+        try:
+            interface_name = self.get_network_interface()
+            if not interface_name: return []
+
+            cmd = f'netsh interface ip show dns name="{interface_name}"'
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='oem', errors='ignore', timeout=5)
+            
+            dns_servers_found = []
+            for line in result.stdout.split('\n'):
+                stripped_line = line.strip()
+                if "Statically Configured DNS Servers" in line or "DNS servers configured through DHCP" in line:
+                    continue
+                parts = stripped_line.split()
+                if len(parts) > 0 and (parts[-1].count('.') == 3):
+                     if not any(x in stripped_line.lower() for x in ['configuration for interface', 'dhcp enabled', 'register with suffix']):
+                         dns_servers_found.append(parts[-1])
+            return dns_servers_found
+        except Exception as e:
+            print(f"Error getting current DNS IPs: {e}")
+            return []
+
+    def _ping_current_dns_threaded(self):
+        """Internal method to perform ping and update UI from a thread."""
+        current_dns_ips = self._get_current_dns_ips()
+        
+        if not current_dns_ips:
+            self.root.after(0, lambda: messagebox.showwarning("Ping Failed", "Could not determine the current DNS server to ping."))
+            self.root.after(0, lambda: self.status_label.configure(text="Ping failed: No current DNS found.", text_color=self.colors['error']))
+            return
+
+        primary_dns = current_dns_ips[0]
+        latency, display_string = self.ping_dns_server(primary_dns)
+        
+        message = f"Ping result for {primary_dns}:\n\n{display_string}"
+        self.root.after(0, lambda: messagebox.showinfo("Current DNS Ping", message))
+        
+        status_color = self.colors['success'] if "ms" in display_string else self.colors['error']
+        status_text = f"Ping for {primary_dns}: {display_string}"
+        self.root.after(0, lambda: self.status_label.configure(text=status_text, text_color=status_color))
 
     def lighten_hex_color(self, hex_color, factor=0.2):
         if not hex_color.startswith('#'): return hex_color
@@ -293,10 +469,7 @@ class IranDNSSwitcher:
         hex_color = hex_color.lstrip('#')
         rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
         
-        new_rgb = []
-        for val in rgb:
-            new_val = int(val + (255 - val) * factor)
-            new_rgb.append(min(255, max(0, new_val)))
+        new_rgb = [min(255, max(0, int(val + (255 - val) * factor))) for val in rgb]
             
         return '#{:02x}{:02x}{:02x}'.format(*new_rgb)
 
@@ -322,23 +495,19 @@ class IranDNSSwitcher:
     
     def get_network_interface(self):
         
-        #  netsh interface ip show config
         try:
-            # fibd Gateway
             cmd = 'netsh interface ip show config'
             cli_encoding = 'oem' 
             
             try:
                 result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=10)
             except UnicodeDecodeError:
-                # if error
                 result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='latin-1', errors='ignore', timeout=10)
 
             if result.returncode == 0 and result.stdout:
                 interface_configs = result.stdout.strip().split('\n\n')
                 
                 for config in interface_configs:
-                    # Default Gateway
                     if 'Default Gateway' in config and '127.0.0.1' not in config:
                         gateway_line = [line for line in config.split('\n') if 'Default Gateway' in line]
                         if gateway_line:
@@ -350,7 +519,6 @@ class IranDNSSwitcher:
                                     print(f"Found active interface: '{interface_name}' with gateway {gateway_ip}")
                                     return interface_name
 
-            # Error message if no active network card is found
             print("Warning: Could not determine active network interface with a gateway.")
             messagebox.showwarning("Network Interface",
                                     "Could not automatically determine the active network interface.\n"
@@ -381,8 +549,6 @@ class IranDNSSwitcher:
         try:
             interface_name = self.get_network_interface()
             if not interface_name:
-                # The get_network_interface function now shows its own detailed error message.
-                # So we can just update the status label and return.
                 self.status_label.configure(text="✗ Error: No active network interface found", text_color=self.colors['error'])
                 return
 
@@ -445,7 +611,6 @@ class IranDNSSwitcher:
         try:
             interface_name = self.get_network_interface()
             if not interface_name:
-                 # Error is already shown by get_network_interface
                  return
 
             cmd = f'netsh interface ip show dns name="{interface_name}"'
@@ -464,14 +629,11 @@ class IranDNSSwitcher:
             dns_servers_found = []
             for line in lines:
                 stripped_line = line.strip()
-                # A more robust check for DNS server lines
                 if "Statically Configured DNS Servers" in line or "DNS servers configured through DHCP" in line:
-                    continue # Skip header lines
+                    continue
                 
-                # Check if the line seems to contain an IP address
                 parts = stripped_line.split()
                 if len(parts) > 0 and (parts[-1].count('.') == 3 or ':' in parts[-1]):
-                     # Avoid other config lines that might end in an IP-like string
                      if not any(x in stripped_line.lower() for x in ['configuration for interface', 'dhcp enabled', 'register with suffix']):
                          dns_servers_found.append(parts[-1])
 
