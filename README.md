@@ -31,7 +31,7 @@
 
 ## 🔽 دانلود نرم‌افزار
 
-📦 [دانلود نسخه اجرایی (EXE)](https://github.com/mehrshadasgary/Iran-DNS-Switcher/releases/latest/download/Iran_DNS_Switcher.zip)
+📦 [دانلود نسخه اجرایی (EXE)](https://github.com/mehrshadasgary/Iran-DNS-Switcher/releases/latest/download/Iran_DNS_Switcher.exe)
 
 > آخرین نسخه منتشرشده از برنامه را از لینک بالا دانلود کنید.
 > 
