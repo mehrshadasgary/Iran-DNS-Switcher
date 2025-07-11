@@ -70,6 +70,7 @@ Microsoft Defender SmartScreen prevented an unrecognized app from starting...
 | Google        | 8.8.8.8              | 8.8.4.4                  |
 | Cloudflare    | 1.1.1.1              | 1.0.0.1                  |
 | Auto (DHCP)   | تنظیم خودکار        | تنظیم خودکار            |
+| Custom DNS    | آدرس دلخواه شما              | آدرس دلخواه شما                  |
 
 ## 🖥️ نحوه استفاده
 
