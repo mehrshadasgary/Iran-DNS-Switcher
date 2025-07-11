@@ -31,7 +31,11 @@ class IranDNSSwitcher:
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
         
         # --- File for storing custom DNS ---
-        self.save_file = "custom_dns.json"
+        app_data_path = os.getenv('LOCALAPPDATA')
+        app_folder = os.path.join(app_data_path, "IranDNSSwitcher")
+        if not os.path.exists(app_folder):
+            os.makedirs(app_folder)
+        self.save_file = os.path.join(app_folder, "custom_dns.json")
 
         # --- Center Window ---
         self.center_window(700, 600) 
