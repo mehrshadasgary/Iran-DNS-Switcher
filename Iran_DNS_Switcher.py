@@ -30,6 +30,13 @@ class IranDNSSwitcher:
         self.current_version = "v2.3"
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
         
+        # --- File for storing custom DNS ---
+        app_data_path = os.getenv('LOCALAPPDATA')
+        app_folder = os.path.join(app_data_path, "IranDNSSwitcher")
+        if not os.path.exists(app_folder):
+            os.makedirs(app_folder)
+        self.save_file = os.path.join(app_folder, "custom_dns.json")
+
         # --- Center Window ---
         self.center_window(700, 600) 
 
@@ -98,9 +105,9 @@ class IranDNSSwitcher:
 
 
         # --- DNS Servers ---
-
-        #   irani
         self.dns_servers = {
+
+            # irani
             "Shecan": ["178.22.122.100",
                         "185.51.200.2"],
 
@@ -115,20 +122,23 @@ class IranDNSSwitcher:
 
             "403": ["10.202.10.202",
                      "10.202.10.102"],
-
-            #   Google & Cloudflare
+            
+            # Google & Cloudflare
             "Google": ["8.8.8.8",
                         "8.8.4.4"],
-
+                        
             "Cloudflare": ["1.1.1.1",
                             "1.0.0.1"],
 
-            #   auto
+            # auto
             "Auto (DHCP)": ["auto",
                              "auto"]
         }
 
         self.predefined_dns_keys = set(self.dns_servers.keys())
+        
+        # --- Load custom DNS from file ---
+        self.load_custom_dns()
         
         self.setup_ui()
 
@@ -690,7 +700,7 @@ class IranDNSSwitcher:
 
         self.add_dns_window = ctk.CTkToplevel(self.root)
         self.add_dns_window.title("Add Custom DNS")
-        self.add_dns_window.geometry("400x350")
+        self.add_dns_window.geometry("400x300")
         self.add_dns_window.resizable(False, False)
         self.add_dns_window.attributes("-topmost", True)
         self.add_dns_window.transient(self.root)
@@ -704,24 +714,7 @@ class IranDNSSwitcher:
 
         ctk.CTkLabel(dialog_frame, text="Enter Custom DNS Servers:", 
                      font=self.font_section_title,
-                       text_color=self.colors['text_primary']).pack(anchor='w', pady=(0,10))
-        
-        # --- Warning Label ---
-        warning_text = (
-            ":توجه\n"
-            ".دی ان اس های سفارشی به صورت موقت (تا زمان بسته شدن برنامه) ذخیره می‌شوند\n"
-            ".این محدودیت برای جلوگیری از تشخیص اشتباه توسط آنتی‌ویروس‌ها اعمال شده است"
-)
-        warning_font = ctk.CTkFont(family="Segoe UI", size=10)
-        warning_label = ctk.CTkLabel(
-            dialog_frame,
-            text=warning_text,
-            font=warning_font,
-            text_color=self.colors['warning'],
-            justify="right"
-        )
-        warning_label.pack(anchor='w', pady=(0, 15), padx=5)
-
+                       text_color=self.colors['text_primary']).pack(anchor='w', pady=(0,15))
 
         name_entry = ctk.CTkEntry(
             dialog_frame,
@@ -791,6 +784,7 @@ class IranDNSSwitcher:
             return
 
         self.dns_servers[custom_name] = [primary_dns, secondary_dns]
+        self.save_custom_dns()
         self.create_dns_buttons(self.dns_scroll_frame)
         
         self.add_dns_window.destroy()
@@ -803,7 +797,27 @@ class IranDNSSwitcher:
                                 f"Are you sure you want to delete '{dns_name}'?"):
             if dns_name in self.dns_servers:
                 del self.dns_servers[dns_name]
+                self.save_custom_dns()
                 self.create_dns_buttons(self.dns_scroll_frame)
+
+    def load_custom_dns(self):
+        """Loads custom DNS entries from the save file."""
+        try:
+            if os.path.exists(self.save_file):
+                with open(self.save_file, 'r') as f:
+                    custom_dns = json.load(f)
+                    self.dns_servers.update(custom_dns)
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"Could not load custom DNS file: {e}")
+
+    def save_custom_dns(self):
+        """Saves custom DNS entries to the save file."""
+        custom_dns_to_save = {k: v for k, v in self.dns_servers.items() if k not in self.predefined_dns_keys}
+        try:
+            with open(self.save_file, 'w') as f:
+                json.dump(custom_dns_to_save, f, indent=4)
+        except IOError as e:
+            print(f"Could not save custom DNS file: {e}")
 
     def change_dns(self, dns_name):
         dns_servers_list = self.dns_servers[dns_name]
