@@ -27,7 +27,7 @@ class IranDNSSwitcher:
         self.root.resizable(False, False)
 
         # --- Version and GitHub Info for Update Check ---
-        self.current_version = "v2.3"
+        self.current_version = "v2.4"
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
         
         # --- File for storing custom DNS ---
@@ -941,54 +941,51 @@ class IranDNSSwitcher:
         try:
             interface_name = self.get_network_interface()
             if not interface_name:
-                 return
+                return
 
             cmd = f'netsh interface ip show dns name="{interface_name}"'
             cli_encoding = 'oem'
             try:
-                result = subprocess.run(cmd,
-                                         shell=True,
-                                           capture_output=True,
-                                             text=True,
-                                               encoding=cli_encoding,
-                                                 errors='ignore',
-                                                   timeout=5)
-                
+                result = subprocess.run(
+                    cmd,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    encoding=cli_encoding,
+                    errors='ignore',
+                    timeout=5
+                )
             except UnicodeDecodeError:
-                result = subprocess.run(cmd,
-                                         shell=True,
-                                           capture_output=True,
-                                             text=True,
-                                               encoding='latin-1',
-                                                 errors='ignore',
-                                                   timeout=5)
-                
+                result = subprocess.run(
+                    cmd,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    encoding='latin-1',
+                    errors='ignore',
+                    timeout=5
+                )
             except subprocess.TimeoutExpired:
-                messagebox.showerror("Timeout",
-                                      f"Command to show DNS for '{interface_name}' timed out.")
+                messagebox.showerror("Timeout", f"Command to show DNS for '{interface_name}' timed out.")
                 return
 
             dns_info = f"Current DNS Servers for '{interface_name}':\n\n"
-            lines = result.stdout.split('\n')
             
-            dns_servers_found = []
-            for line in lines:
-                stripped_line = line.strip()
-                if "Statically Configured DNS Servers" in line or "DNS servers configured through DHCP" in line:
-                    continue
-                
-                parts = stripped_line.split()
-                if len(parts) > 0 and (parts[-1].count('.') == 3 or ':' in parts[-1]):
-                     if not any(x in stripped_line.lower() for x in ['configuration for interface',
-                                                                      'dhcp enabled', 'register with suffix']):
-                         dns_servers_found.append(parts[-1])
+            # --- START OF CHANGE ---
+            # Regex to find all valid IPv4 addresses in the output
+            ip_pattern = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
+            
+            # Find all IPs in the entire output string
+            dns_servers_found = re.findall(ip_pattern, result.stdout)
+            # --- END OF CHANGE ---
 
             if dns_servers_found:
-                 dns_info += "\n".join(dns_servers_found)
+                # Join all found DNS servers with a new line
+                dns_info += "\n".join(dns_servers_found)
             elif 'dhcp' in result.stdout.lower():
-                 dns_info += "DNS servers configured automatically through DHCP."
+                dns_info += "DNS servers configured automatically through DHCP."
             else:
-                 dns_info += "No static DNS servers specified."
+                dns_info += "No static DNS servers specified."
             
             messagebox.showinfo("Current DNS", dns_info)
             
