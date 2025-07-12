@@ -628,59 +628,57 @@ class IranDNSSwitcher:
     
     def get_network_interface(self):
         try:
-            cmd = 'netsh interface ip show config'
-            cli_encoding = 'oem' 
+            cmd_route = 'route print -4 0.0.0.0'
+            route_result = subprocess.run(cmd_route, shell=True,
+                                           capture_output=True,
+                                             text=True, encoding='utf-8',
+                                               errors='ignore',
+                                                 timeout=5)
             
-            try:
-                result = subprocess.run(cmd,
-                                         shell=True,
-                                           capture_output=True,
-                                             text=True,
-                                               encoding=cli_encoding,
-                                                 errors='ignore',
-                                                   timeout=10)
-                
-            except UnicodeDecodeError:
-                result = subprocess.run(cmd,
-                                         shell=True,
-                                           capture_output=True,
-                                             text=True,
-                                               encoding='latin-1',
-                                                 errors='ignore',
-                                                   timeout=10)
+            active_interface_ip = None
+            if route_result.returncode == 0:
+                for line in route_result.stdout.split('\n'):
+                    if line.strip().startswith('0.0.0.0'):
+                        parts = line.strip().split()
+                        if len(parts) >= 4:
+                            active_interface_ip = parts[3]  
+                            break
+            
+            if not active_interface_ip:
+                messagebox.showwarning("Network Error",
+                                        "Could not determine the default route interface. Please check your internet connection.")
+                return None
 
-            if result.returncode == 0 and result.stdout:
-                interface_configs = result.stdout.strip().split('\n\n')
-                
+            cmd_config = 'netsh interface ip show config'
+            config_result = subprocess.run(cmd_config, shell=True,
+                                            capture_output=True,
+                                              text=True,
+                                                encoding='oem',
+                                                errors='ignore',
+                                                  timeout=10)
+
+            if config_result.returncode == 0 and config_result.stdout:
+                interface_configs = config_result.stdout.strip().split('\n\n')
                 for config in interface_configs:
-                    if 'Default Gateway' in config and '127.0.0.1' not in config:
-                        gateway_line = [line for line in config.split('\n') if 'Default Gateway' in line]
-                        if gateway_line:
-                            gateway_ip = gateway_line[0].split(':')[-1].strip()
-                            if gateway_ip and gateway_ip != '0.0.0.0':
-                                match = re.search(r'Configuration for interface "(.+?)"',
-                                                   config)
-                                if match:
-                                    interface_name = match.group(1)
-                                    print(f"Found active interface: '{interface_name}' with gateway {gateway_ip}")
-                                    return interface_name
-
-            print("Warning: Could not determine active network interface with a gateway.")
-            messagebox.showwarning("Network Interface",
-                                    "Could not automatically determine the active network interface.\n"
-                                    "Please ensure you are connected to the internet.")
+                    if active_interface_ip in config:
+                        match = re.search(r'Configuration for interface "(.+?)"', config, re.IGNORECASE)
+                        if match:
+                            interface_name = match.group(1).strip()
+                            print(f"Found active interface via default route: '{interface_name}' with IP {active_interface_ip}")
+                            return interface_name
+            
+            messagebox.showwarning("Network Interface", "Could not match the active route to a network interface.")
             return None
 
         except subprocess.TimeoutExpired:
-            print("Error: The command to find network interfaces timed out.")
-            messagebox.showerror("Error",
-                                  "The command to find network interfaces timed out. Please try again.")
+            messagebox.showerror("Timeout",
+                                  "A network command timed out. Please try again.")
             return None
         except Exception as e:
-            print(f"Error getting network interface: {e}.")
             messagebox.showerror("Network Interface Error",
                                   f"An unexpected error occurred while detecting the network interface: {e}")
             return None
+    
     
     def is_valid_ip(self, ip):
         """Checks if the provided string is a valid IPv4 address."""
