@@ -14,9 +14,14 @@ import re
 import requests
 import threading
 import json
+from datetime import datetime
 
 class IranDNSSwitcher:
     def __init__(self):
+        # --- Logging ---
+        self.log_messages = []
+        self.log("Application started")
+
         # --- Theme and Appearance ---
         ctk.set_appearance_mode("dark")  
         ctk.set_default_color_theme("blue") 
@@ -35,6 +40,7 @@ class IranDNSSwitcher:
         app_folder = os.path.join(app_data_path, "IranDNSSwitcher")
         if not os.path.exists(app_folder):
             os.makedirs(app_folder)
+            self.log(f"Created application data folder at: {app_folder}")
         self.save_file = os.path.join(app_folder, "custom_dns.json")
 
         # --- Center Window ---
@@ -47,12 +53,12 @@ class IranDNSSwitcher:
 
             if os.path.exists(icon_path):
                 self.root.iconbitmap(icon_path)
-                
+                self.log("Application icon loaded successfully.")
             else:
-                print(f"Warning: Icon file not found at {icon_path}")
+                self.log(f"Warning: Icon file not found at {icon_path}")
                 
         except Exception as e:
-            print(f"Error setting iconbitmap: {e}. This might happen on non-Windows systems or if the .ico file is invalid.")
+            self.log(f"Error setting iconbitmap: {e}. This might happen on non-Windows systems or if the .ico file is invalid.")
 
         # --- Color ---
         self.colors = {
@@ -144,6 +150,14 @@ class IranDNSSwitcher:
         update_thread.start()
         # --- End of Update Check Start ---
 
+    # --- Centralized logging function ---
+    def log(self, message):
+        """Adds a message to the log list with a timestamp."""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = f"[{timestamp}] {message}"
+        self.log_messages.append(log_entry)
+        print(log_entry) # Also print to console for live debugging
+
     def center_window(self, width, height):
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -152,7 +166,7 @@ class IranDNSSwitcher:
         self.root.geometry(f'{width}x{height}+{x}+{y}')
         
     def setup_ui(self):
-        # ---  Setup the menu bar ---
+        # --- Setup the menu bar ---
         self.setup_menu()
 
         main_container = ctk.CTkFrame(self.root, fg_color=self.colors['app_bg']) 
@@ -309,79 +323,98 @@ class IranDNSSwitcher:
         
         self.create_dns_buttons(self.dns_scroll_frame)
 
-    # --- Method to create the menu bar ---
     def setup_menu(self):
         """Creates and configures the main menu bar."""
         self.menu_bar = tkinter.Menu(self.root)
         self.root.config(menu=self.menu_bar)
 
         # --- Network Menu ---
-        self.network_menu = tkinter.Menu(
-            self.menu_bar, 
-            tearoff=0,
-            bg=self.colors['frame_bg'],
-            fg=self.colors['text_primary'],
-            activebackground=self.colors['primary_accent_hover_red'],
-            activeforeground=self.colors['text_primary'],
-            selectcolor=self.colors['text_primary']
-        )
+        self.network_menu = tkinter.Menu(self.menu_bar, tearoff=0, bg=self.colors['frame_bg'], fg=self.colors['text_primary'], activebackground=self.colors['primary_accent_hover_red'], activeforeground=self.colors['text_primary'], selectcolor=self.colors['text_primary'])
         self.menu_bar.add_cascade(label="Network", menu=self.network_menu)
 
-        # Add auto-detect option
-        self.network_menu.add_radiobutton(
-            label="Auto-detect (Default)",
-            variable=self.selected_interface_var,
-            value="auto",
-            command=lambda: self.select_interface("Auto-detect (Default)")
-        )
+        self.network_menu.add_radiobutton(label="Auto-detect (Default)", variable=self.selected_interface_var, value="auto", command=lambda: self.select_interface("Auto-detect (Default)"))
         self.network_menu.add_separator()
 
-        # Populate with available interfaces
         interfaces = self.get_all_network_interfaces()
         if not interfaces:
             self.network_menu.add_command(label="No network interfaces found", state="disabled")
         else:
             for interface in interfaces:
-                self.network_menu.add_radiobutton(
-                    label=interface,
-                    variable=self.selected_interface_var,
-                    value=interface,
-                    command=lambda i=interface: self.select_interface(i)
-                )
+                self.network_menu.add_radiobutton(label=interface, variable=self.selected_interface_var, value=interface, command=lambda i=interface: self.select_interface(i))
+        
+        # --- Log Menu ---
+        self.log_menu = tkinter.Menu(self.menu_bar, tearoff=0, bg=self.colors['frame_bg'], fg=self.colors['text_primary'], activebackground=self.colors['primary_accent_hover_red'], activeforeground=self.colors['text_primary'])
+        self.menu_bar.add_cascade(label="Log", menu=self.log_menu)
+        self.log_menu.add_command(label="View & Copy Log", command=self.show_log_window)
 
-    # ---  Method to get all network interfaces ---
     def get_all_network_interfaces(self):
         """Returns a list of all network interface names."""
+        self.log("Attempting to get all network interfaces...")
         interfaces = []
         try:
             cmd_config = 'netsh interface ip show config'
-            config_result = subprocess.run(
-                cmd_config, shell=True, capture_output=True, text=True,
-                encoding='oem', errors='ignore', timeout=10,
-                creationflags=subprocess.CREATE_NO_WINDOW # Hide console window
-            )
+            config_result = subprocess.run(cmd_config, shell=True, capture_output=True, text=True, encoding='oem', errors='ignore', timeout=10, creationflags=subprocess.CREATE_NO_WINDOW)
             if config_result.returncode == 0 and config_result.stdout:
-                # Regex to find all interface configuration blocks
+                self.log("'netsh interface ip show config' executed successfully.")
                 interface_configs = config_result.stdout.strip().split('\n\n')
                 for config in interface_configs:
                     match = re.search(r'Configuration for interface "(.+?)"', config, re.IGNORECASE)
                     if match:
                         interfaces.append(match.group(1).strip())
+                self.log(f"Found interfaces: {interfaces}")
+            else:
+                self.log(f"Error executing 'netsh interface ip show config'. Return code: {config_result.returncode}")
+                self.log(f"STDOUT: {config_result.stdout}")
+                self.log(f"STDERR: {config_result.stderr}")
             return interfaces
         except Exception as e:
-            print(f"Could not get all network interfaces: {e}")
+            self.log(f"An exception occurred in get_all_network_interfaces: {e}")
             return []
 
-    # --- NEW: Method to handle interface selection from menu ---
     def select_interface(self, interface_name):
         """Updates the status bar when a new interface is selected."""
-        # The variable is already updated by the radiobutton command.
-        # This function is just for providing user feedback.
-        self.status_label.configure(text=f"Network interface set to: {interface_name}",
-                                    text_color=self.colors['text_secondary'])
-        print(f"Interface selected via menu: {self.selected_interface_var.get()}")
+        self.log(f"User selected network interface: {interface_name}")
+        self.status_label.configure(text=f"Network interface set to: {interface_name}", text_color=self.colors['text_secondary'])
+
+    def show_log_window(self):
+        """Creates and displays a window with log messages."""
+        if hasattr(self, 'log_window') and self.log_window.winfo_exists():
+            self.log_window.focus()
+            return
+
+        self.log_window = ctk.CTkToplevel(self.root)
+        self.log_window.title("Application Log")
+        self.log_window.geometry("700x500")
+        self.log_window.attributes("-topmost", True)
+        self.log_window.transient(self.root)
+
+        dialog_frame = ctk.CTkFrame(self.log_window, fg_color=self.colors['frame_bg'])
+        dialog_frame.pack(expand=True, fill="both", padx=10, pady=10)
+        
+        dialog_frame.rowconfigure(0, weight=1)
+        dialog_frame.columnconfigure(0, weight=1)
+
+        log_textbox = ctk.CTkTextbox(dialog_frame, wrap="word", font=self.font_info_text)
+        log_textbox.grid(row=0, column=0, columnspan=3, sticky="nsew", pady=(0, 10))
+        
+        log_content = "\n".join(self.log_messages)
+        log_textbox.insert("1.0", log_content)
+        log_textbox.configure(state="disabled")
+
+        def copy_log():
+            self.log("Log content copied to clipboard.")
+            self.root.clipboard_clear()
+            self.root.clipboard_append(log_textbox.get("1.0", "end"))
+            messagebox.showinfo("Copied", "Log content has been copied to the clipboard.", parent=self.log_window)
+
+        copy_btn = ctk.CTkButton(dialog_frame, text="Copy to Clipboard", command=copy_log, font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'])
+        copy_btn.grid(row=1, column=0, padx=5, pady=5)
+        
+        close_btn = ctk.CTkButton(dialog_frame, text="Close", command=self.log_window.destroy, font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'])
+        close_btn.grid(row=1, column=1, padx=5, pady=5)
 
     def check_for_updates(self):
+        self.log("Checking for updates...")
         try:
             api_url = f"https://api.github.com/repos/{self.github_repo}/releases/latest"
             response = requests.get(api_url, timeout=5)
@@ -390,8 +423,10 @@ class IranDNSSwitcher:
             latest_release_data = response.json()
             latest_version = latest_release_data.get("tag_name")
             release_url = latest_release_data.get("html_url")
+            self.log(f"Found latest version: {latest_version}. Current version: {self.current_version}")
 
             if latest_version and latest_version > self.current_version:
+                self.log("New update is available.")
                 message = (
                     f"A new version ({latest_version}) is available!\n\n"
                     f"You are currently using version {self.current_version}.\n\n"
@@ -399,11 +434,13 @@ class IranDNSSwitcher:
                 )
                 if messagebox.askyesno("Update Available", message):
                     self.open_link(release_url)
+            else:
+                self.log("Application is up to date.")
 
         except requests.exceptions.RequestException as e:
-            print(f"Could not check for updates: {e}")
+            self.log(f"Could not check for updates (RequestException): {e}")
         except Exception as e:
-            print(f"An unexpected error occurred during update check: {e}")
+            self.log(f"An unexpected error occurred during update check: {e}")
 
     def create_dns_buttons(self, parent_frame):
         # Clear existing buttons before redrawing
@@ -507,7 +544,7 @@ class IranDNSSwitcher:
         except subprocess.TimeoutExpired:
             return float('inf'), "Timeout"
         except Exception as e:
-            print(f"Ping error for {ip_address}: {e}")
+            self.log(f"Ping error for {ip_address}: {e}")
             return float('inf'), "Error"
 
     def ping_all_dns(self):
@@ -637,7 +674,7 @@ class IranDNSSwitcher:
                          dns_servers_found.append(parts[-1])
             return dns_servers_found
         except Exception as e:
-            print(f"Error getting current DNS IPs: {e}")
+            self.log(f"Error getting current DNS IPs: {e}")
             return []
 
     def _ping_current_dns_threaded(self):
@@ -672,43 +709,43 @@ class IranDNSSwitcher:
 
     def open_link(self, url):
         try:
+            self.log(f"Opening link: {url}")
             webbrowser.open_new(url)
         except Exception as e:
+            self.log(f"Failed to open link {url}: {e}")
             messagebox.showerror("Error",
                                   f"Failed to open link:\n{str(e)}")
 
     def is_admin(self):
         try:
-            return ctypes.windll.shell32.IsUserAnAdmin()
+            is_admin = ctypes.windll.shell32.IsUserAnAdmin()
+            self.log(f"Administrator check: IsUserAnAdmin() -> {is_admin}")
+            return is_admin
         except:
+            self.log("Administrator check failed.")
             return False
     
     def run_as_admin(self):
+        self.log("Attempting to restart with administrator privileges.")
         try:
             ctypes.windll.shell32.ShellExecuteW(
                 None, "runas", sys.executable, " ".join(sys.argv), None, 1
             )
-        except:
+        except Exception as e:
+            self.log(f"Failed to run as administrator: {e}")
             messagebox.showerror("Error",
                                   "Failed to run as administrator")
     
-    # --- MODIFIED: To use the selected interface from the menu ---
     def get_network_interface(self):
-        """
-        Gets the network interface name.
-        If an interface is selected in the menu, it returns that.
-        Otherwise, it auto-detects the active interface.
-        """
-        # Check if a specific interface has been selected from the menu
         selected_interface = self.selected_interface_var.get()
         if selected_interface and selected_interface != "auto":
-            print(f"Using user-selected interface: '{selected_interface}'")
+            self.log(f"Using user-selected interface: '{selected_interface}'")
             return selected_interface
 
-        # If set to "auto", proceed with the original detection logic
-        print("Auto-detecting active network interface...")
+        self.log("Auto-detecting active network interface...")
         try:
             cmd_route = 'route print -4 0.0.0.0'
+            self.log(f"Executing command: {cmd_route}")
             route_result = subprocess.run(cmd_route, shell=True,
                                            capture_output=True,
                                              text=True, encoding='utf-8',
@@ -717,19 +754,25 @@ class IranDNSSwitcher:
             
             active_interface_ip = None
             if route_result.returncode == 0:
+                self.log("'route print' executed successfully.")
                 for line in route_result.stdout.split('\n'):
                     if line.strip().startswith('0.0.0.0'):
                         parts = line.strip().split()
                         if len(parts) >= 4:
                             active_interface_ip = parts[3]  
+                            self.log(f"Found active route IP: {active_interface_ip}")
                             break
+            else:
+                self.log(f"Error executing 'route print'. Return code: {route_result.returncode}\nSTDOUT: {route_result.stdout}\nSTDERR: {route_result.stderr}")
             
             if not active_interface_ip:
+                self.log("Could not determine the default route interface.")
                 messagebox.showwarning("Network Error",
                                         "Could not determine the default route interface. Please check your internet connection.")
                 return None
 
             cmd_config = 'netsh interface ip show config'
+            self.log(f"Executing command: {cmd_config}")
             config_result = subprocess.run(cmd_config, shell=True,
                                             capture_output=True,
                                               text=True,
@@ -738,26 +781,31 @@ class IranDNSSwitcher:
                                                   timeout=10)
 
             if config_result.returncode == 0 and config_result.stdout:
+                self.log("'netsh show config' executed successfully.")
                 interface_configs = config_result.stdout.strip().split('\n\n')
                 for config in interface_configs:
                     if active_interface_ip in config:
                         match = re.search(r'Configuration for interface "(.+?)"', config, re.IGNORECASE)
                         if match:
                             interface_name = match.group(1).strip()
-                            print(f"Found active interface via default route: '{interface_name}' with IP {active_interface_ip}")
+                            self.log(f"Found active interface name: '{interface_name}' with IP {active_interface_ip}")
                             return interface_name
             
+            self.log(f"Could not match the active route IP {active_interface_ip} to a network interface.")
             messagebox.showwarning("Network Interface", "Could not match the active route to a network interface.")
             return None
 
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as e:
+            self.log(f"A network command timed out: {e}")
             messagebox.showerror("Timeout",
                                   "A network command timed out. Please try again.")
             return None
         except Exception as e:
+            self.log(f"An unexpected error occurred while detecting the network interface: {e}")
             messagebox.showerror("Network Interface Error",
                                   f"An unexpected error occurred while detecting the network interface: {e}")
             return None
+    
     
     def is_valid_ip(self, ip):
         """Checks if the provided string is a valid IPv4 address."""
@@ -863,6 +911,7 @@ class IranDNSSwitcher:
         self.dns_servers[custom_name] = [primary_dns, secondary_dns]
         self.save_custom_dns()
         self.create_dns_buttons(self.dns_scroll_frame)
+        self.log(f"Custom DNS '{custom_name}' added with values: {primary_dns}, {secondary_dns}")
         
         self.add_dns_window.destroy()
         messagebox.showinfo("Success",
@@ -876,25 +925,32 @@ class IranDNSSwitcher:
                 del self.dns_servers[dns_name]
                 self.save_custom_dns()
                 self.create_dns_buttons(self.dns_scroll_frame)
+                self.log(f"Custom DNS '{dns_name}' has been deleted.")
 
     def load_custom_dns(self):
         """Loads custom DNS entries from the save file."""
+        self.log("Loading custom DNS from file...")
         try:
             if os.path.exists(self.save_file):
                 with open(self.save_file, 'r') as f:
                     custom_dns = json.load(f)
                     self.dns_servers.update(custom_dns)
+                    self.log(f"Successfully loaded {len(custom_dns)} custom DNS entries.")
+            else:
+                self.log("Custom DNS file does not exist. No entries loaded.")
         except (json.JSONDecodeError, IOError) as e:
-            print(f"Could not load custom DNS file: {e}")
+            self.log(f"Could not load custom DNS file: {e}")
 
     def save_custom_dns(self):
         """Saves custom DNS entries to the save file."""
+        self.log("Saving custom DNS entries to file...")
         custom_dns_to_save = {k: v for k, v in self.dns_servers.items() if k not in self.predefined_dns_keys}
         try:
             with open(self.save_file, 'w') as f:
                 json.dump(custom_dns_to_save, f, indent=4)
+            self.log(f"Successfully saved {len(custom_dns_to_save)} custom DNS entries.")
         except IOError as e:
-            print(f"Could not save custom DNS file: {e}")
+            self.log(f"Could not save custom DNS file: {e}")
 
     def change_dns(self, dns_name):
         dns_servers_list = self.dns_servers[dns_name]
@@ -921,6 +977,7 @@ class IranDNSSwitcher:
                                              text_color=self.colors['error'])
                 return
 
+            self.log(f"Attempting to change DNS to '{dns_name}' for interface '{interface_name}'")
             self.status_label.configure(
                 text=f"Changing to {dns_name} for '{interface_name}'...",
                 text_color=self.colors['warning']
@@ -934,6 +991,7 @@ class IranDNSSwitcher:
                 cmd_clear_static = f'netsh interface ipv4 delete dnsserver "{interface_name}" all'
                 cmd_set_dhcp = f'netsh interface ip set dns name="{interface_name}" source=dhcp'
                 
+                self.log(f"Executing command: {cmd_clear_static}")
                 subprocess.run(cmd_clear_static,
                                 shell=True,
                                   check=False,
@@ -942,6 +1000,7 @@ class IranDNSSwitcher:
                                         encoding=cli_encoding,
                                           errors='ignore')
                 
+                self.log(f"Executing command: {cmd_set_dhcp}")
                 subprocess.run(cmd_set_dhcp,
                                 shell=True, 
                                 check=True,
@@ -954,7 +1013,7 @@ class IranDNSSwitcher:
                     text=f"✓ DNS for '{interface_name}' set to Automatic (DHCP)", 
                     text_color=self.colors['success']
                 )
-
+                self.log(f"DNS for '{interface_name}' successfully set to Automatic (DHCP).")
                 messagebox.showinfo(
                     "Success", 
                     f"DNS successfully set to Automatic (DHCP) for interface '{interface_name}'"
@@ -967,10 +1026,12 @@ class IranDNSSwitcher:
                 cmd_set_primary = f'netsh interface ip set dns name="{interface_name}" static {primary_dns}'
                 cmd_flush_dns = 'ipconfig /flushdns'
                 
+                self.log(f"Executing command: {cmd_set_primary}")
                 subprocess.run(cmd_set_primary, shell=True, check=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
                 if secondary_dns:
                     cmd_add_secondary = f'netsh interface ip add dns name="{interface_name}" addr={secondary_dns} index=2'
+                    self.log(f"Executing command: {cmd_add_secondary}")
                     subprocess.run(cmd_add_secondary,
                                     shell=True,
                                       check=True,
@@ -981,6 +1042,7 @@ class IranDNSSwitcher:
                 else:
                     pass
 
+                self.log(f"Executing command: {cmd_flush_dns}")
                 subprocess.run(cmd_flush_dns,
                                 shell=True,
                                   check=False,
@@ -993,7 +1055,7 @@ class IranDNSSwitcher:
                     text=f"✓ DNS for '{interface_name}' changed to {dns_name}", 
                     text_color=self.colors['success']
                 )
-                
+                self.log(f"DNS for '{interface_name}' successfully changed to {dns_name}.")
                 success_message = f"DNS successfully changed to {dns_name} for interface '{interface_name}'\n\nPrimary: {primary_dns}"
                 if secondary_dns:
                     success_message += f"\nSecondary: {secondary_dns}"
@@ -1002,7 +1064,7 @@ class IranDNSSwitcher:
         except subprocess.CalledProcessError as e:
             error_details = f"Command:\n{e.cmd}\n\nReturn Code: {e.returncode}\n\nSTDOUT:\n{e.stdout}\n\nSTDERR:\n{e.stderr}"
             full_error_message = f"A command failed to execute properly.\n\n{error_details}"
-
+            self.log(f"Command Execution Error: {full_error_message}")
             messagebox.showerror("Command Execution Error",
                                   full_error_message)
             
@@ -1010,6 +1072,7 @@ class IranDNSSwitcher:
                                          text_color=self.colors['error'])
             
         except Exception as e:
+            self.log(f"An unexpected error occurred during DNS change: {e}")
             messagebox.showerror("Error", f"An unexpected error occurred during DNS change:\n{str(e)}")
             self.status_label.configure(text="✗ Unexpected error during DNS change",
                                          text_color=self.colors['error'])
@@ -1021,6 +1084,7 @@ class IranDNSSwitcher:
                 return
 
             cmd = f'netsh interface ip show dns name="{interface_name}"'
+            self.log(f"Executing command: {cmd}")
             cli_encoding = 'oem'
             try:
                 result = subprocess.run(
@@ -1043,6 +1107,7 @@ class IranDNSSwitcher:
                     timeout=5
                 )
             except subprocess.TimeoutExpired:
+                self.log(f"Command to show DNS for '{interface_name}' timed out.")
                 messagebox.showerror("Timeout", f"Command to show DNS for '{interface_name}' timed out.")
                 return
 
@@ -1064,16 +1129,20 @@ class IranDNSSwitcher:
             else:
                 dns_info += "No static DNS servers specified."
             
+            self.log(f"Showing current DNS info: {dns_info.replace(chr(10), ' ')}")
             messagebox.showinfo("Current DNS", dns_info)
             
         except Exception as e:
+            self.log(f"Failed to get DNS information: {e}")
             messagebox.showerror("Error", f"Failed to get DNS information:\n{str(e)}")
     
     def run(self):
         self.root.mainloop()
+        self.log("Application closing.")
 
 if __name__ == "__main__":
     if os.name != 'nt':
+        # Logging can't happen here if app is not initialized, so we just show the error and exit.
         messagebox.showerror("Compatibility Error",
                               "This application is designed for Windows only.")
         sys.exit(1)
