@@ -1,4 +1,4 @@
-                                           # Iran DNS Changer version 2.3
+                                           # Iran DNS Changer version 2.5
 
 # --- Imports ---
 import customtkinter as ctk
@@ -27,7 +27,7 @@ class IranDNSSwitcher:
         self.root.resizable(False, False)
 
         # --- Version and GitHub Info for Update Check ---
-        self.current_version = "v2.4"
+        self.current_version = "v2.5"
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
         
         # --- File for storing custom DNS ---
@@ -86,21 +86,13 @@ class IranDNSSwitcher:
 
         # --- Fonts ---
         self.font_title = ctk.CTkFont(family="Segoe UI", size=36, weight="bold")
-
         self.font_subtitle = ctk.CTkFont(family="Segoe UI", size=12)
-
         self.font_info_text = ctk.CTkFont(family="Segoe UI", size=11)
-
         self.font_info_link = ctk.CTkFont(family="Segoe UI", size=11, underline=True)
-
         self.font_section_title = ctk.CTkFont(family="Segoe UI", size=16, weight="bold")
-
         self.font_button_main = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
-
         self.font_status_label = ctk.CTkFont(family="Segoe UI", size=11)
-
         self.font_dns_button_name = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
-
         self.font_delete_button = ctk.CTkFont(family="Segoe UI", size=10, weight="bold")
 
 
@@ -137,6 +129,9 @@ class IranDNSSwitcher:
 
         self.predefined_dns_keys = set(self.dns_servers.keys())
         
+        # --- Variable to store selected network interface ---
+        self.selected_interface_var = ctk.StringVar(value="auto")
+
         # --- Load custom DNS from file ---
         self.load_custom_dns()
         
@@ -151,16 +146,15 @@ class IranDNSSwitcher:
 
     def center_window(self, width, height):
         screen_width = self.root.winfo_screenwidth()
-
         screen_height = self.root.winfo_screenheight()
-
         x = int((screen_width / 2) - (width / 2))
-
         y = int((screen_height / 2) - (height / 2) - 50)
-
         self.root.geometry(f'{width}x{height}+{x}+{y}')
         
     def setup_ui(self):
+        # ---  Setup the menu bar ---
+        self.setup_menu()
+
         main_container = ctk.CTkFrame(self.root, fg_color=self.colors['app_bg']) 
         main_container.pack(fill='both', expand=True, padx=20, pady=20)
         
@@ -314,6 +308,78 @@ class IranDNSSwitcher:
             self.dns_scroll_frame.columnconfigure(i, weight=1, minsize=180)
         
         self.create_dns_buttons(self.dns_scroll_frame)
+
+    # --- Method to create the menu bar ---
+    def setup_menu(self):
+        """Creates and configures the main menu bar."""
+        self.menu_bar = tkinter.Menu(self.root)
+        self.root.config(menu=self.menu_bar)
+
+        # --- Network Menu ---
+        self.network_menu = tkinter.Menu(
+            self.menu_bar, 
+            tearoff=0,
+            bg=self.colors['frame_bg'],
+            fg=self.colors['text_primary'],
+            activebackground=self.colors['primary_accent_hover_red'],
+            activeforeground=self.colors['text_primary'],
+            selectcolor=self.colors['text_primary']
+        )
+        self.menu_bar.add_cascade(label="Network", menu=self.network_menu)
+
+        # Add auto-detect option
+        self.network_menu.add_radiobutton(
+            label="Auto-detect (Default)",
+            variable=self.selected_interface_var,
+            value="auto",
+            command=lambda: self.select_interface("Auto-detect (Default)")
+        )
+        self.network_menu.add_separator()
+
+        # Populate with available interfaces
+        interfaces = self.get_all_network_interfaces()
+        if not interfaces:
+            self.network_menu.add_command(label="No network interfaces found", state="disabled")
+        else:
+            for interface in interfaces:
+                self.network_menu.add_radiobutton(
+                    label=interface,
+                    variable=self.selected_interface_var,
+                    value=interface,
+                    command=lambda i=interface: self.select_interface(i)
+                )
+
+    # ---  Method to get all network interfaces ---
+    def get_all_network_interfaces(self):
+        """Returns a list of all network interface names."""
+        interfaces = []
+        try:
+            cmd_config = 'netsh interface ip show config'
+            config_result = subprocess.run(
+                cmd_config, shell=True, capture_output=True, text=True,
+                encoding='oem', errors='ignore', timeout=10,
+                creationflags=subprocess.CREATE_NO_WINDOW # Hide console window
+            )
+            if config_result.returncode == 0 and config_result.stdout:
+                # Regex to find all interface configuration blocks
+                interface_configs = config_result.stdout.strip().split('\n\n')
+                for config in interface_configs:
+                    match = re.search(r'Configuration for interface "(.+?)"', config, re.IGNORECASE)
+                    if match:
+                        interfaces.append(match.group(1).strip())
+            return interfaces
+        except Exception as e:
+            print(f"Could not get all network interfaces: {e}")
+            return []
+
+    # --- NEW: Method to handle interface selection from menu ---
+    def select_interface(self, interface_name):
+        """Updates the status bar when a new interface is selected."""
+        # The variable is already updated by the radiobutton command.
+        # This function is just for providing user feedback.
+        self.status_label.configure(text=f"Network interface set to: {interface_name}",
+                                    text_color=self.colors['text_secondary'])
+        print(f"Interface selected via menu: {self.selected_interface_var.get()}")
 
     def check_for_updates(self):
         try:
@@ -626,7 +692,21 @@ class IranDNSSwitcher:
             messagebox.showerror("Error",
                                   "Failed to run as administrator")
     
+    # --- MODIFIED: To use the selected interface from the menu ---
     def get_network_interface(self):
+        """
+        Gets the network interface name.
+        If an interface is selected in the menu, it returns that.
+        Otherwise, it auto-detects the active interface.
+        """
+        # Check if a specific interface has been selected from the menu
+        selected_interface = self.selected_interface_var.get()
+        if selected_interface and selected_interface != "auto":
+            print(f"Using user-selected interface: '{selected_interface}'")
+            return selected_interface
+
+        # If set to "auto", proceed with the original detection logic
+        print("Auto-detecting active network interface...")
         try:
             cmd_route = 'route print -4 0.0.0.0'
             route_result = subprocess.run(cmd_route, shell=True,
@@ -678,7 +758,6 @@ class IranDNSSwitcher:
             messagebox.showerror("Network Interface Error",
                                   f"An unexpected error occurred while detecting the network interface: {e}")
             return None
-    
     
     def is_valid_ip(self, ip):
         """Checks if the provided string is a valid IPv4 address."""
