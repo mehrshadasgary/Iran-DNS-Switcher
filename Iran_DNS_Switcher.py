@@ -44,7 +44,7 @@ class IranDNSSwitcher:
         self.save_file = os.path.join(app_folder, "custom_dns.json")
 
         # --- Center Window ---
-        self.center_window(700, 650) # Increased height for category buttons
+        self.center_window(700, 650)
 
         # --- Icon ---
         try:
@@ -64,6 +64,7 @@ class IranDNSSwitcher:
         self.colors = {
             'app_bg': '#242424',
             'frame_bg': '#2E2E2E',
+            'menu_bar_bg': '#3A3A3A',
             
             'primary_accent_main_red': '#D32F2F',
             'primary_accent_hover_red': '#E57373',
@@ -79,13 +80,8 @@ class IranDNSSwitcher:
             'error': '#FF5252',
             'warning': '#FFC107',
             
-            # Google & Cloudflare
             "dns_foreign_purple": "#8E44AD",
-
-            # auto
             "dns_auto": "#757575",
-
-            # custom
             "custom_dns_blue": "#2980B9",
             "custom_dns_blue_hover": "#3498DB",
         }
@@ -114,6 +110,7 @@ class IranDNSSwitcher:
             "Foreign": {
                 "Google": ["8.8.8.8", "8.8.4.4"],
                 "Cloudflare": ["1.1.1.1", "1.0.0.1"],
+
             },
             "Custom": {}
         }
@@ -152,8 +149,8 @@ class IranDNSSwitcher:
         self.root.geometry(f'{width}x{height}+{x}+{y}')
         
     def setup_ui(self):
-        # --- Setup the menu bar ---
-        self.setup_menu()
+        # --- Setup the custom menu bar ---
+        self.setup_custom_menu()
 
         main_container = ctk.CTkFrame(self.root, fg_color=self.colors['app_bg']) 
         main_container.pack(fill='both', expand=True, padx=20, pady=20)
@@ -323,35 +320,93 @@ class IranDNSSwitcher:
         
         self.display_dns_for_category(self.current_category) # Display initial category
 
-    def setup_menu(self):
-        """Creates and configures the main menu bar."""
-        self.menu_bar = tkinter.Menu(self.root)
-        self.root.config(menu=self.menu_bar)
+    def setup_custom_menu(self):
+        """Creates a custom, theme-able menu bar."""
+        self.menu_bar_frame = ctk.CTkFrame(self.root, height=30, fg_color=self.colors['menu_bar_bg'], corner_radius=0)
+        self.menu_bar_frame.pack(side="top", fill="x")
 
-        # --- Network Menu ---
-        self.network_menu = tkinter.Menu(self.menu_bar, tearoff=0, bg=self.colors['frame_bg'], fg=self.colors['text_primary'], activebackground=self.colors['primary_accent_hover_red'], activeforeground=self.colors['text_primary'], selectcolor=self.colors['text_primary'])
-        self.menu_bar.add_cascade(label="Network", menu=self.network_menu)
+        # Network Button
+        self.network_btn = ctk.CTkButton(
+            self.menu_bar_frame, text="Network",
+            font=self.font_button_main,
+            fg_color="transparent",
+            hover_color=self.colors['secondary_accent_gray'],
+            width=80,
+            corner_radius=0,
+            command=self.toggle_network_menu
+        )
+        self.network_btn.pack(side="left", padx=(5,0))
 
-        self.network_menu.add_radiobutton(label="Auto-detect (Default)", variable=self.selected_interface_var, value="auto", command=lambda: self.select_interface("Auto-detect (Default)"))
-        self.network_menu.add_separator()
+        # Log Button
+        log_btn = ctk.CTkButton(
+            self.menu_bar_frame, text="Log",
+            font=self.font_button_main,
+            fg_color="transparent",
+            hover_color=self.colors['secondary_accent_gray'],
+            width=50,
+            corner_radius=0,
+            command=self.show_log_window
+        )
+        log_btn.pack(side="left")
+        
+        self.network_menu_window = None
+
+    def toggle_network_menu(self):
+        """Creates and shows or hides the network dropdown menu."""
+        if self.network_menu_window is not None and self.network_menu_window.winfo_exists():
+            self.network_menu_window.destroy()
+            self.network_menu_window = None
+            return
+
+        self.network_menu_window = ctk.CTkToplevel(self.root)
+        self.network_menu_window.overrideredirect(True)
+
+        x = self.network_btn.winfo_rootx()
+        y = self.network_btn.winfo_rooty() + self.network_btn.winfo_height()
+        self.network_menu_window.geometry(f"+{x}+{y}")
+
+        menu_frame = ctk.CTkFrame(self.network_menu_window, fg_color=self.colors['frame_bg'], corner_radius=6, border_width=1, border_color=self.colors['secondary_accent_gray'])
+        menu_frame.pack()
+
+        auto_rb = ctk.CTkRadioButton(
+            menu_frame, text="Auto-detect (Default)",
+            variable=self.selected_interface_var,
+            value="auto",
+            command=lambda: self.select_interface_from_menu("Auto-detect (Default)")
+        )
+        auto_rb.pack(anchor="w", padx=10, pady=5)
+
+        sep = ctk.CTkFrame(menu_frame, height=1, fg_color=self.colors['secondary_accent_gray'])
+        sep.pack(fill="x", padx=10, pady=5)
 
         interfaces = self.get_all_network_interfaces()
         if not interfaces:
-            self.network_menu.add_command(label="No network interfaces found", state="disabled")
+            no_if_label = ctk.CTkLabel(menu_frame, text="No interfaces found", text_color=self.colors['text_secondary'])
+            no_if_label.pack(anchor="w", padx=10, pady=5)
         else:
             for interface in interfaces:
-                self.network_menu.add_radiobutton(label=interface, variable=self.selected_interface_var, value=interface, command=lambda i=interface: self.select_interface(i))
-        
-        # --- Log Menu ---
-        self.log_menu = tkinter.Menu(self.menu_bar, tearoff=0, bg=self.colors['frame_bg'], fg=self.colors['text_primary'], activebackground=self.colors['primary_accent_hover_red'], activeforeground=self.colors['text_primary'])
-        self.menu_bar.add_cascade(label="Log", menu=self.log_menu)
-        self.log_menu.add_command(label="View & Copy Log", command=self.show_log_window)
+                rb = ctk.CTkRadioButton(
+                    menu_frame, text=interface,
+                    variable=self.selected_interface_var,
+                    value=interface,
+                    command=lambda i=interface: self.select_interface_from_menu(i)
+                )
+                rb.pack(anchor="w", padx=10, pady=5)
+
+        self.network_menu_window.bind("<FocusOut>", lambda e: self.network_menu_window.destroy())
+        self.network_menu_window.focus_set()
+
+    def select_interface_from_menu(self, interface_name):
+        """Handles selection from the custom dropdown menu."""
+        self.select_interface(interface_name)
+        if self.network_menu_window is not None and self.network_menu_window.winfo_exists():
+            self.network_menu_window.destroy()
+            self.network_menu_window = None
 
     def display_dns_for_category(self, category_name):
         self.log(f"Displaying DNS category: {category_name}")
         self.current_category = category_name
         
-        # --- Update category button styles with specific colors ---
         category_colors = {
             "Iranian": self.colors['primary_accent_main_red'],
             "Foreign": self.colors['dns_foreign_purple'],
@@ -360,13 +415,10 @@ class IranDNSSwitcher:
 
         for name, button in self.category_buttons.items():
             if name == category_name:
-                # Set the active button to its category's theme color
                 button.configure(fg_color=category_colors.get(name))
             else:
-                # Set inactive buttons to a neutral gray
                 button.configure(fg_color=self.colors['secondary_accent_gray'])
 
-        # Clear existing buttons before redrawing
         for widget in self.dns_scroll_frame.winfo_children():
             widget.destroy()
 
@@ -381,11 +433,8 @@ class IranDNSSwitcher:
         button_height = 70
 
         for dns_name, dns_values in dns_list.items():
-            # Use the same theme color for the buttons inside the scroll frame
             base_color = category_colors.get(category_name)
-            
             hover_color = self.lighten_hex_color(base_color, 0.15)
-
             button_text = f"{dns_name}\n{dns_values[0]}"
             if len(dns_values) > 1 and dns_values[1]:
                 button_text += f" | {dns_values[1]}"
