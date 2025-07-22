@@ -44,7 +44,7 @@ class IranDNSSwitcher:
         self.save_file = os.path.join(app_folder, "custom_dns.json")
 
         # --- Center Window ---
-        self.center_window(700, 600) 
+        self.center_window(700, 650) # Increased height for category buttons
 
         # --- Icon ---
         try:
@@ -102,39 +102,25 @@ class IranDNSSwitcher:
         self.font_delete_button = ctk.CTkFont(family="Segoe UI", size=10, weight="bold")
 
 
-        # --- DNS Servers ---
+        # --- DNS Servers with Categories ---
         self.dns_servers = {
-
-            # irani
-            "Shecan": ["178.22.122.100",
-                        "185.51.200.2"],
-
-            "Radar": ["10.202.10.10",
-                       "10.202.10.11"],
-
-            "Electro": ["78.157.42.100",
-                         "78.157.42.101"],
-
-            "Begzar": ["185.55.226.26",
-                        "185.55.226.25"],
-
-            "403": ["10.202.10.202",
-                     "10.202.10.102"],
-            
-            # Google & Cloudflare
-            "Google": ["8.8.8.8",
-                        "8.8.4.4"],
-                        
-            "Cloudflare": ["1.1.1.1",
-                            "1.0.0.1"],
-
-            # auto
-            "Auto (DHCP)": ["auto",
-                             "auto"]
+            "Iranian": {
+                "Shecan": ["178.22.122.100", "185.51.200.2"],
+                "Radar": ["10.202.10.10", "10.202.10.11"],
+                "Electro": ["78.157.42.100", "78.157.42.101"],
+                "Begzar": ["185.55.226.26", "185.55.226.25"],
+                "403": ["10.202.10.202", "10.202.10.102"],
+            },
+            "Foreign": {
+                "Google": ["8.8.8.8", "8.8.4.4"],
+                "Cloudflare": ["1.1.1.1", "1.0.0.1"],
+            },
+            "Custom": {}
         }
-
-        self.predefined_dns_keys = set(self.dns_servers.keys())
         
+        # --- State for the current category ---
+        self.current_category = "Iranian"
+
         # --- Variable to store selected network interface ---
         self.selected_interface_var = ctk.StringVar(value="auto")
 
@@ -298,7 +284,7 @@ class IranDNSSwitcher:
 
         add_custom_dns_btn.pack(side=ctk.LEFT)
         
-        # --- DNS grade  ---
+        # --- DNS Section ---
         dns_section_frame = ctk.CTkFrame(main_container,
                                           fg_color=self.colors['frame_bg'],
                                             corner_radius=10)
@@ -310,18 +296,32 @@ class IranDNSSwitcher:
             font=self.font_section_title,
             text_color=self.colors['text_primary']
         )
-
         section_title.pack(anchor='w', pady=(10, 5), padx=15)
+
+        # --- Category Buttons Frame ---
+        category_frame = ctk.CTkFrame(dns_section_frame, fg_color="transparent")
+        category_frame.pack(fill='x', padx=15, pady=(0, 10))
+
+        self.category_buttons = {}
+        categories = ["Iranian", "Foreign", "Custom"]
+        for i, cat_name in enumerate(categories):
+            cat_btn = ctk.CTkButton(category_frame, text=cat_name, font=self.font_button_main, command=lambda c=cat_name: self.display_dns_for_category(c))
+            cat_btn.pack(side='left', padx=(0, 5))
+            self.category_buttons[cat_name] = cat_btn
+        
+        # --- Default DNS Button ---
+        default_btn = ctk.CTkButton(category_frame, text="Default DNS", font=self.font_button_main, command=lambda: self.change_dns("auto", "Default (DHCP)"), fg_color=self.colors['dns_auto'], hover_color=self.colors['secondary_accent_gray_hover'])
+        default_btn.pack(side='right', padx=(5, 0))
         
         self.dns_scroll_frame = ctk.CTkScrollableFrame(dns_section_frame,
                                                         fg_color="transparent",
-                                                          height=245)
+                                                          height=200) # Adjusted height
         self.dns_scroll_frame.pack(fill='x', padx=10, pady=(0, 10))
         
         for i in range(3):
             self.dns_scroll_frame.columnconfigure(i, weight=1, minsize=180)
         
-        self.create_dns_buttons(self.dns_scroll_frame)
+        self.display_dns_for_category(self.current_category) # Display initial category
 
     def setup_menu(self):
         """Creates and configures the main menu bar."""
@@ -347,8 +347,67 @@ class IranDNSSwitcher:
         self.menu_bar.add_cascade(label="Log", menu=self.log_menu)
         self.log_menu.add_command(label="View & Copy Log", command=self.show_log_window)
 
+    def display_dns_for_category(self, category_name):
+        self.log(f"Displaying DNS category: {category_name}")
+        self.current_category = category_name
+        
+        # --- Update category button styles with specific colors ---
+        category_colors = {
+            "Iranian": self.colors['primary_accent_main_red'],
+            "Foreign": self.colors['dns_foreign_purple'],
+            "Custom": self.colors['custom_dns_blue']
+        }
+
+        for name, button in self.category_buttons.items():
+            if name == category_name:
+                # Set the active button to its category's theme color
+                button.configure(fg_color=category_colors.get(name))
+            else:
+                # Set inactive buttons to a neutral gray
+                button.configure(fg_color=self.colors['secondary_accent_gray'])
+
+        # Clear existing buttons before redrawing
+        for widget in self.dns_scroll_frame.winfo_children():
+            widget.destroy()
+
+        dns_list = self.dns_servers.get(category_name, {})
+        
+        if not dns_list:
+            no_dns_label = ctk.CTkLabel(self.dns_scroll_frame, text=f"No DNS servers in '{category_name}' category.", font=self.font_info_text, text_color=self.colors['text_secondary'])
+            no_dns_label.pack(pady=20)
+            return
+
+        row, col = 0, 0
+        button_height = 70
+
+        for dns_name, dns_values in dns_list.items():
+            # Use the same theme color for the buttons inside the scroll frame
+            base_color = category_colors.get(category_name)
+            
+            hover_color = self.lighten_hex_color(base_color, 0.15)
+
+            button_text = f"{dns_name}\n{dns_values[0]}"
+            if len(dns_values) > 1 and dns_values[1]:
+                button_text += f" | {dns_values[1]}"
+
+            btn = ctk.CTkButton(
+                self.dns_scroll_frame, text=button_text, font=self.font_dns_button_name, 
+                fg_color=base_color, hover_color=hover_color,
+                text_color=self.colors['text_primary'],
+                command=lambda cat=category_name, name=dns_name: self.change_dns(cat, name),
+                height=button_height, corner_radius=8,
+            )
+            btn.grid(row=row, column=col, padx=5, pady=5, sticky='nsew')
+            
+            if category_name == "Custom":
+                btn.bind("<Button-3>", lambda event, name=dns_name: self.show_delete_menu(event, name))
+
+            col += 1
+            if col > 2:
+                col = 0
+                row += 1
+
     def get_all_network_interfaces(self):
-        """Returns a list of all network interface names."""
         self.log("Attempting to get all network interfaces...")
         interfaces = []
         try:
@@ -372,12 +431,10 @@ class IranDNSSwitcher:
             return []
 
     def select_interface(self, interface_name):
-        """Updates the status bar when a new interface is selected."""
         self.log(f"User selected network interface: {interface_name}")
         self.status_label.configure(text=f"Network interface set to: {interface_name}", text_color=self.colors['text_secondary'])
 
     def show_log_window(self):
-        """Creates and displays a window with log messages."""
         if hasattr(self, 'log_window') and self.log_window.winfo_exists():
             self.log_window.focus()
             return
@@ -395,7 +452,7 @@ class IranDNSSwitcher:
         dialog_frame.columnconfigure(0, weight=1)
 
         log_textbox = ctk.CTkTextbox(dialog_frame, wrap="word", font=self.font_info_text)
-        log_textbox.grid(row=0, column=0, columnspan=3, sticky="nsew", pady=(0, 10))
+        log_textbox.grid(row=0, column=0, columnspan=2, sticky="nsew", pady=(0, 10))
         
         log_content = "\n".join(self.log_messages)
         log_textbox.insert("1.0", log_content)
@@ -427,74 +484,15 @@ class IranDNSSwitcher:
 
             if latest_version and latest_version > self.current_version:
                 self.log("New update is available.")
-                message = (
-                    f"A new version ({latest_version}) is available!\n\n"
-                    f"You are currently using version {self.current_version}.\n\n"
-                    "Would you like to go to the download page?"
-                )
+                message = (f"A new version ({latest_version}) is available!\n\n" f"You are currently using version {self.current_version}.\n\n" "Would you like to go to the download page?")
                 if messagebox.askyesno("Update Available", message):
                     self.open_link(release_url)
             else:
                 self.log("Application is up to date.")
-
         except requests.exceptions.RequestException as e:
             self.log(f"Could not check for updates (RequestException): {e}")
         except Exception as e:
             self.log(f"An unexpected error occurred during update check: {e}")
-
-    def create_dns_buttons(self, parent_frame):
-        # Clear existing buttons before redrawing
-        for widget in parent_frame.winfo_children():
-            widget.destroy()
-
-        custom_dns_color = self.colors['custom_dns_blue']
-
-        row, col = 0, 0
-        button_height = 70
-
-        for i, (dns_name, dns_values) in enumerate(self.dns_servers.items()):
-            is_custom = dns_name not in self.predefined_dns_keys
-            
-            # --- Main DNS Button ---
-            if is_custom:
-                base_color = custom_dns_color
-            else:
-                if dns_name == "Auto (DHCP)":
-                    base_color = self.colors['dns_auto']
-                elif dns_name in ["Google", "Cloudflare"]:
-                    base_color = self.colors['dns_foreign_purple']
-                else:
-                    base_color = self.colors['primary_accent_main_red']
-            
-            hover_color = self.lighten_hex_color(base_color,
-                                                  0.15) if dns_name != "Auto (DHCP)" else self.colors['secondary_accent_gray_hover']
-
-            button_text = f"{dns_name}\n"
-            if dns_values[0] != "auto":
-                button_text += f"{dns_values[0]}"
-                if len(dns_values) > 1 and dns_values[1]:
-                    button_text += f" | {dns_values[1]}"
-            else:
-                button_text += "Automatic Configuration"
-
-            btn = ctk.CTkButton(
-                parent_frame, text=button_text, font=self.font_dns_button_name, 
-                fg_color=base_color, hover_color=hover_color,
-                  text_color=self.colors['text_primary'],
-                command=lambda name=dns_name: self.change_dns(name),
-                  height=button_height, corner_radius=8,
-            )
-
-            btn.grid(row=row, column=col, padx=5, pady=5, sticky='nsew')
-            
-            # --- Bind right-click menu for custom DNS ---
-            if is_custom:
-                btn.bind("<Button-3>", lambda event, name=dns_name: self.show_delete_menu(event, name))
-
-            col += 1
-            if col > 2:
-                col = 0
-                row += 1
 
     def show_delete_menu(self, event, dns_name):
         """Creates and displays a right-click context menu to delete a custom DNS."""
@@ -557,8 +555,9 @@ class IranDNSSwitcher:
 
     def _ping_all_dns_threaded(self):
         ping_results = []
-        for name, ips in self.dns_servers.items():
-            if ips[0] != "auto":
+        # Iterate through all categories and their DNS servers
+        for category, dns_list in self.dns_servers.items():
+            for name, ips in dns_list.items():
                 primary_ip = ips[0]
                 self.root.after(0, lambda n=name: self.status_label.configure(text=f"Pinging {n}..."))
                 latency, display_string = self.ping_dns_server(primary_ip)
@@ -902,15 +901,15 @@ class IranDNSSwitcher:
         if not custom_name:
             custom_name = f"Custom ({primary_dns})"
 
-        if custom_name in self.dns_servers:
+        if custom_name in self.dns_servers["Custom"]:
             messagebox.showwarning("DNS Exists",
-                                    f"A DNS with the name '{custom_name}' already exists.",
+                                    f"A DNS with the name '{custom_name}' already exists in Custom DNS.",
                                       parent=self.add_dns_window)
             return
 
-        self.dns_servers[custom_name] = [primary_dns, secondary_dns]
+        self.dns_servers["Custom"][custom_name] = [primary_dns, secondary_dns]
         self.save_custom_dns()
-        self.create_dns_buttons(self.dns_scroll_frame)
+        self.display_dns_for_category("Custom")
         self.log(f"Custom DNS '{custom_name}' added with values: {primary_dns}, {secondary_dns}")
         
         self.add_dns_window.destroy()
@@ -921,10 +920,10 @@ class IranDNSSwitcher:
         """Deletes a custom DNS entry."""
         if messagebox.askyesno("Confirm Deletion",
                                 f"Are you sure you want to delete '{dns_name}'?"):
-            if dns_name in self.dns_servers:
-                del self.dns_servers[dns_name]
+            if dns_name in self.dns_servers["Custom"]:
+                del self.dns_servers["Custom"][dns_name]
                 self.save_custom_dns()
-                self.create_dns_buttons(self.dns_scroll_frame)
+                self.display_dns_for_category("Custom")
                 self.log(f"Custom DNS '{dns_name}' has been deleted.")
 
     def load_custom_dns(self):
@@ -934,7 +933,7 @@ class IranDNSSwitcher:
             if os.path.exists(self.save_file):
                 with open(self.save_file, 'r') as f:
                     custom_dns = json.load(f)
-                    self.dns_servers.update(custom_dns)
+                    self.dns_servers["Custom"] = custom_dns
                     self.log(f"Successfully loaded {len(custom_dns)} custom DNS entries.")
             else:
                 self.log("Custom DNS file does not exist. No entries loaded.")
@@ -944,16 +943,19 @@ class IranDNSSwitcher:
     def save_custom_dns(self):
         """Saves custom DNS entries to the save file."""
         self.log("Saving custom DNS entries to file...")
-        custom_dns_to_save = {k: v for k, v in self.dns_servers.items() if k not in self.predefined_dns_keys}
         try:
             with open(self.save_file, 'w') as f:
-                json.dump(custom_dns_to_save, f, indent=4)
-            self.log(f"Successfully saved {len(custom_dns_to_save)} custom DNS entries.")
+                json.dump(self.dns_servers["Custom"], f, indent=4)
+            self.log(f"Successfully saved {len(self.dns_servers['Custom'])} custom DNS entries.")
         except IOError as e:
             self.log(f"Could not save custom DNS file: {e}")
 
-    def change_dns(self, dns_name):
-        dns_servers_list = self.dns_servers[dns_name]
+    def change_dns(self, category, dns_name):
+        if category == "auto":
+            dns_servers_list = ["auto", "auto"]
+        else:
+            dns_servers_list = self.dns_servers[category][dns_name]
+        
         self._apply_dns_settings(dns_name, dns_servers_list)
 
     def _apply_dns_settings(self, dns_name, dns_servers_list):
@@ -1010,13 +1012,13 @@ class IranDNSSwitcher:
                                         errors='ignore')
                 
                 self.status_label.configure(
-                    text=f"✓ DNS for '{interface_name}' set to Automatic (DHCP)", 
+                    text=f"✓ DNS for '{interface_name}' set to Default (DHCP)", 
                     text_color=self.colors['success']
                 )
-                self.log(f"DNS for '{interface_name}' successfully set to Automatic (DHCP).")
+                self.log(f"DNS for '{interface_name}' successfully set to Default (DHCP).")
                 messagebox.showinfo(
                     "Success", 
-                    f"DNS successfully set to Automatic (DHCP) for interface '{interface_name}'"
+                    f"DNS successfully set to Default (DHCP) for interface '{interface_name}'"
                 )
 
             else:
