@@ -87,31 +87,96 @@ class IranDNSSwitcher:
         }
 
         # --- Fonts ---
-        self.font_title = ctk.CTkFont(family="Segoe UI", size=36, weight="bold")
-        self.font_subtitle = ctk.CTkFont(family="Segoe UI", size=12)
-        self.font_info_text = ctk.CTkFont(family="Segoe UI", size=11)
-        self.font_info_link = ctk.CTkFont(family="Segoe UI", size=11, underline=True)
-        self.font_section_title = ctk.CTkFont(family="Segoe UI", size=16, weight="bold")
-        self.font_button_main = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
-        self.font_category_button = ctk.CTkFont(family="Segoe UI", size=13, weight="bold") 
-        self.font_status_label = ctk.CTkFont(family="Segoe UI", size=11)
-        self.font_dns_button_name = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
-        self.font_delete_button = ctk.CTkFont(family="Segoe UI", size=10, weight="bold")
+        self.font_title = ctk.CTkFont(family="Segoe UI",
+                                       size=36,
+                                         weight="bold")
+        
+        self.font_subtitle = ctk.CTkFont(family="Segoe UI",
+                                          size=12)
+        
+        self.font_info_text = ctk.CTkFont(family="Segoe UI",
+                                           size=11)
+        
+        self.font_info_link = ctk.CTkFont(family="Segoe UI",
+                                           size=11,
+                                             underline=True)
+        
+        self.font_section_title = ctk.CTkFont(family="Segoe UI",
+                                               size=16,
+                                                 weight="bold")
+        
+        self.font_button_main = ctk.CTkFont(family="Segoe UI",
+                                             size=12,
+                                               weight="bold")
+        
+        self.font_category_button = ctk.CTkFont(family="Segoe UI",
+                                                 size=13,
+                                                   weight="bold") 
+        
+        self.font_status_label = ctk.CTkFont(family="Segoe UI",
+                                              size=11)
+        
+        self.font_dns_button_name = ctk.CTkFont(family="Segoe UI",
+                                                 size=12,
+                                                   weight="bold")
+        
+        self.font_delete_button = ctk.CTkFont(family="Segoe UI",
+                                               size=10,
+                                                 weight="bold")
 
 
         # --- DNS Servers with Categories ---
         self.dns_servers = {
             "Iranian": {
-                "Shecan": ["178.22.122.100", "185.51.200.2"],
-                "Radar": ["10.202.10.10", "10.202.10.11"],
-                "Electro": ["78.157.42.100", "78.157.42.101"],
-                "Begzar": ["185.55.226.26", "185.55.226.25"],
-                "403": ["10.202.10.202", "10.202.10.102"],
+                "Shecan": ["178.22.122.100",
+                            "185.51.200.2"],
+
+                "Radar": ["10.202.10.10",
+                           "10.202.10.11"],
+
+                "Electro": ["78.157.42.100",
+                             "78.157.42.101"],
+
+                "Begzar": ["185.55.225.25",
+                            "185.55.226.26"],
+
+                "403": ["10.202.10.202",
+                         "10.202.10.102"],
+
+                "Shatel": ["85.15.1.14",
+                            "85.15.1.15"],
+
+                "Shelter": ["78.157.60.6",
+                             "78.157.60.242"],
+
+                "Beshkan": ["181.41.194.177",
+                             "181.41.194.186"],
 
             },
             "Foreign": {
-                "Google": ["8.8.8.8", "8.8.4.4"],
-                "Cloudflare": ["1.1.1.1", "1.0.0.1"],
+                "Google": ["8.8.8.8",
+                            "8.8.4.4"],
+
+                "Cloudflare": ["1.1.1.1",
+                                "1.0.0.1"],
+
+                "OpenDNS": ["208.67.222.222",
+                             "208.67.220.220"],
+
+                "Comodo": ["8.26.56.26",
+                            "8.20.247.20"],
+
+                "Quad9": ["9.9.9.9",
+                           "49.112.112.112"],
+
+                "AlternateDNS": ["76.76.19.19",
+                                  "76.223.122.150"],
+
+                "Control D": ["76.76.2.0",
+                               "76.76.10.0"],
+
+                "Yandex": ["77.88.8.8",
+                            "77.88.8.1"],
 
             },
             "Custom": {}
@@ -141,10 +206,9 @@ class IranDNSSwitcher:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"[{timestamp}] {message}"
         self.log_messages.append(log_entry)
-        print(log_entry) # Also print to console for live debugging
+        print(log_entry) 
 
     def center_window(self, width, height):
-        # Update is needed before getting screen info to ensure it's accurate
         self.root.update_idletasks() 
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -168,7 +232,7 @@ class IranDNSSwitcher:
         self.root.geometry(f'{app_width}x{app_height}+{x}+{y}')
         
     def setup_ui(self):
-        # --- NEW: Setup the custom menu bar ---
+        # --- Setup the custom menu bar ---
         self.setup_custom_menu()
 
         main_container = ctk.CTkFrame(self.root, fg_color=self.colors['app_bg']) 
@@ -331,7 +395,8 @@ class IranDNSSwitcher:
         
         self.dns_scroll_frame = ctk.CTkScrollableFrame(dns_section_frame,
                                                         fg_color="transparent",
-                                                          height=245) # Adjusted height for 3 full rows
+                                                          height=245) 
+        
         self.dns_scroll_frame.pack(fill='x', padx=10, pady=(0, 10))
         
         for i in range(3):
@@ -1212,7 +1277,7 @@ class IranDNSSwitcher:
 
 if __name__ == "__main__":
     if os.name != 'nt':
-        # Logging can't happen here if app is not initialized, so we just show the error and exit.
+        # error and exit.
         messagebox.showerror("Compatibility Error",
                               "This application is designed for Windows only.")
         sys.exit(1)
