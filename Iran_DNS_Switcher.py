@@ -106,6 +106,7 @@ class IranDNSSwitcher:
                 "Electro": ["78.157.42.100", "78.157.42.101"],
                 "Begzar": ["185.55.226.26", "185.55.226.25"],
                 "403": ["10.202.10.202", "10.202.10.102"],
+
             },
             "Foreign": {
                 "Google": ["8.8.8.8", "8.8.4.4"],
@@ -312,7 +313,7 @@ class IranDNSSwitcher:
         
         self.dns_scroll_frame = ctk.CTkScrollableFrame(dns_section_frame,
                                                         fg_color="transparent",
-                                                          height=200) # Adjusted height
+                                                          height=240) # Adjusted height for 3 full rows
         self.dns_scroll_frame.pack(fill='x', padx=10, pady=(0, 10))
         
         for i in range(3):
