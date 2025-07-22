@@ -93,6 +93,7 @@ class IranDNSSwitcher:
         self.font_info_link = ctk.CTkFont(family="Segoe UI", size=11, underline=True)
         self.font_section_title = ctk.CTkFont(family="Segoe UI", size=16, weight="bold")
         self.font_button_main = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
+        self.font_category_button = ctk.CTkFont(family="Segoe UI", size=13, weight="bold") 
         self.font_status_label = ctk.CTkFont(family="Segoe UI", size=11)
         self.font_dns_button_name = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
         self.font_delete_button = ctk.CTkFont(family="Segoe UI", size=10, weight="bold")
@@ -143,14 +144,31 @@ class IranDNSSwitcher:
         print(log_entry) # Also print to console for live debugging
 
     def center_window(self, width, height):
+        # Update is needed before getting screen info to ensure it's accurate
+        self.root.update_idletasks() 
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
-        x = int((screen_width / 2) - (width / 2))
-        y = int((screen_height / 2) - (height / 2) - 50)
-        self.root.geometry(f'{width}x{height}+{x}+{y}')
+
+        # --- Adaptive Height Logic ---
+        # If the screen is not tall enough for the default height plus a margin, adjust the height.
+        app_height = height
+        if screen_height < (height + 100):
+            # Leave some space for taskbar and window decorations
+            new_height = screen_height - 120 
+            # Ensure the window doesn't become impractically small
+            app_height = max(600, new_height) 
+            self.log(f"Screen height ({screen_height}px) is small. Adjusting window height from {height}px to {app_height}px.")
+        
+        app_width = width
+
+        x = int((screen_width / 2) - (app_width / 2))
+        # Nudge up a bit from the absolute center
+        y = int((screen_height / 2) - (app_height / 2) - 40) 
+        
+        self.root.geometry(f'{app_width}x{app_height}+{x}+{y}')
         
     def setup_ui(self):
-        # --- Setup the custom menu bar ---
+        # --- NEW: Setup the custom menu bar ---
         self.setup_custom_menu()
 
         main_container = ctk.CTkFrame(self.root, fg_color=self.colors['app_bg']) 
@@ -303,17 +321,17 @@ class IranDNSSwitcher:
         self.category_buttons = {}
         categories = ["Iranian", "Foreign", "Custom"]
         for i, cat_name in enumerate(categories):
-            cat_btn = ctk.CTkButton(category_frame, text=cat_name, font=self.font_button_main, command=lambda c=cat_name: self.display_dns_for_category(c))
+            cat_btn = ctk.CTkButton(category_frame, text=cat_name, font=self.font_category_button, command=lambda c=cat_name: self.display_dns_for_category(c))
             cat_btn.pack(side='left', padx=(0, 5))
             self.category_buttons[cat_name] = cat_btn
         
         # --- Default DNS Button ---
-        default_btn = ctk.CTkButton(category_frame, text="Default DNS", font=self.font_button_main, command=lambda: self.change_dns("auto", "Default (DHCP)"), fg_color=self.colors['dns_auto'], hover_color=self.colors['secondary_accent_gray_hover'])
+        default_btn = ctk.CTkButton(category_frame, text="Default DNS", font=self.font_category_button, command=lambda: self.change_dns("auto", "Default (DHCP)"), fg_color=self.colors['dns_auto'], hover_color=self.colors['secondary_accent_gray_hover'])
         default_btn.pack(side='right', padx=(5, 0))
         
         self.dns_scroll_frame = ctk.CTkScrollableFrame(dns_section_frame,
                                                         fg_color="transparent",
-                                                          height=240) # Adjusted height for 3 full rows
+                                                          height=245) # Adjusted height for 3 full rows
         self.dns_scroll_frame.pack(fill='x', padx=10, pady=(0, 10))
         
         for i in range(3):
