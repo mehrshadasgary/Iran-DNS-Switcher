@@ -708,7 +708,7 @@ class IranDNSSwitcher:
 
         self.all_ping_window = ctk.CTkToplevel(self.root)
         self.all_ping_window.title("All DNS Ping Results")
-        self.all_ping_window.geometry("450x400")
+        self.all_ping_window.geometry("450x450") # Increased height for the new button
         self.all_ping_window.resizable(False, False)
         self.all_ping_window.attributes("-topmost", True)
         self.all_ping_window.transient(self.root)
@@ -761,17 +761,62 @@ class IranDNSSwitcher:
                             font=self.font_info_text,
                               text_color=text_color).grid(row=row_num, column=2, padx=5, pady=1, sticky='w')
         
+        button_frame = ctk.CTkFrame(dialog_frame, fg_color="transparent")
+        button_frame.pack(pady=(10,0))
+        
+        if results and results[0]['latency'] != float('inf'):
+            fastest_dns = results[0]
+            connect_btn = ctk.CTkButton(
+                button_frame,
+                text=f"Connect to Fastest: {fastest_dns['name']}",
+                command=lambda: self.connect_to_fastest_dns(fastest_dns),
+                font=self.font_button_main,
+                fg_color=self.colors['success'],
+                hover_color=self.lighten_hex_color(self.colors['success'], 0.15)
+            )
+            connect_btn.pack(side="left", padx=(0, 10))
+        # --- END: New Code Added ---
+
         close_btn = ctk.CTkButton(
-            dialog_frame, text="Close",
+            button_frame, text="Close",
               command=self.all_ping_window.destroy,
             font=self.font_button_main,
               fg_color=self.colors['secondary_accent_gray'],
             hover_color=self.colors['secondary_accent_gray_hover']
         )
-        close_btn.pack(pady=(10,0))
+        close_btn.pack(side="left")
 
         self.status_label.configure(text="Ping test complete. Results are ready.",
                                      text_color=self.colors['success'])
+
+    # --- START: New Function Added ---
+    def connect_to_fastest_dns(self, fastest_dns_info):
+        """Finds the full DNS info and applies the settings for the fastest DNS."""
+        dns_name = fastest_dns_info['name']
+        self.log(f"User requested to connect to the fastest DNS: {dns_name}")
+
+        dns_servers_list = None
+        found_category = None
+
+        # Search for the DNS name in all categories to get its primary and secondary IPs
+        for category, dns_list in self.dns_servers.items():
+            if dns_name in dns_list:
+                dns_servers_list = dns_list[dns_name]
+                found_category = category
+                break
+        
+        if dns_servers_list:
+            self.log(f"Found '{dns_name}' in category '{found_category}' with IPs: {dns_servers_list}")
+            
+            # Close the ping results window before applying the change
+            if hasattr(self, 'all_ping_window') and self.all_ping_window.winfo_exists():
+                self.all_ping_window.destroy()
+            
+            # Use the existing function to apply the DNS settings
+            self._apply_dns_settings(dns_name, dns_servers_list)
+        else:
+            self.log(f"Error: Could not find the DNS server details for '{dns_name}' in self.dns_servers dictionary.")
+            messagebox.showerror("Error", f"An error occurred. Could not find the details for '{dns_name}' to apply the settings.", parent=self.root)
 
     def ping_current_dns(self):
         self.status_label.configure(text="Pinging current DNS...",
@@ -1175,6 +1220,7 @@ class IranDNSSwitcher:
                                             encoding=cli_encoding,
                                               errors='ignore')
                 else:
+
                     pass
 
                 self.log(f"Executing command: {cmd_flush_dns}")
