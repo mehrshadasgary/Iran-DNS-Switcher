@@ -42,6 +42,7 @@ class IranDNSSwitcher:
             os.makedirs(app_folder)
             self.log(f"Created application data folder at: {app_folder}")
         self.save_file = os.path.join(app_folder, "custom_dns.json")
+        self.dns_list_file = os.path.join(app_folder, "dns_list.json") # File for storing fetched DNS
 
         # --- Center Window ---
         self.center_window(700, 650)
@@ -126,7 +127,7 @@ class IranDNSSwitcher:
 
 
         # --- DNS Servers with Categories ---
-        self.dns_servers = {
+        self.DEFAULT_DNS_SERVERS = {
             "Iranian": {
                 "Shecan": ["178.22.122.100",
                             "185.51.200.2"],
@@ -181,6 +182,7 @@ class IranDNSSwitcher:
             },
             "Custom": {}
         }
+        self.dns_servers = {}
         
         # --- State for the current category ---
         self.current_category = "Iranian"
@@ -188,7 +190,8 @@ class IranDNSSwitcher:
         # --- Variable to store selected network interface ---
         self.selected_interface_var = ctk.StringVar(value="auto")
 
-        # --- Load custom DNS from file ---
+        # --- Load DNS lists from files or defaults ---
+        self.load_main_dns_list()
         self.load_custom_dns()
         
         self.setup_ui()
@@ -432,6 +435,18 @@ class IranDNSSwitcher:
             command=self.show_log_window
         )
         log_btn.pack(side="left")
+
+        # Update DNS Button
+        update_dns_btn = ctk.CTkButton(
+            self.menu_bar_frame, text="Update DNS List",
+            font=self.font_button_main,
+            fg_color="transparent",
+            hover_color=self.colors['secondary_accent_gray'],
+            width=120,
+            corner_radius=0,
+            command=self.update_dns_list_from_github
+        )
+        update_dns_btn.pack(side="left")
         
         self.network_menu_window = None
 
@@ -627,6 +642,83 @@ class IranDNSSwitcher:
         except Exception as e:
             self.log(f"An unexpected error occurred during update check: {e}")
 
+    def update_dns_list_from_github(self):
+        """Starts the process of updating the DNS list from GitHub in a new thread."""
+        if messagebox.askyesno("Update DNS List", "This will fetch the latest DNS list from GitHub. Your custom DNS entries will not be affected.\n\nDo you want to continue?"):
+            self.status_label.configure(text="Updating DNS list from GitHub...", text_color=self.colors['warning'])
+            self.root.update_idletasks()
+            update_thread = threading.Thread(target=self._update_dns_list_threaded, daemon=True)
+            update_thread.start()
+
+    def _update_dns_list_threaded(self):
+        """Fetches and processes the DNS list from GitHub using a plain text file."""
+        self.log("Attempting to update DNS list from GitHub...")
+        try:
+            headers = {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'}
+            dns_list_url = f"https://raw.githubusercontent.com/{self.github_repo}/main/dns_servers.txt"
+            response = requests.get(dns_list_url, timeout=10, headers=headers)
+            response.raise_for_status()
+
+            file_content = response.text
+            if file_content.startswith('\ufeff'):
+                self.log("Detected and stripped UTF-8 BOM from the beginning of the file.")
+                file_content = file_content.lstrip('\ufeff')
+
+            new_iranian_dns = {}
+            new_foreign_dns = {}
+            current_category = None
+
+            lines = file_content.splitlines()
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                if line.lower().startswith("category: iranian"):
+                    current_category = "Iranian"
+                elif line.lower().startswith("category: foreign"):
+                    current_category = "Foreign"
+                elif ":" in line and current_category:
+                    try:
+                        name, ips_str = line.split(":", 1)
+                        ips = [ip.strip() for ip in ips_str.split(",")]
+                        
+                        if current_category == "Iranian":
+                            new_iranian_dns[name.strip()] = ips
+                        elif current_category == "Foreign":
+                            new_foreign_dns[name.strip()] = ips
+                    except ValueError:
+                        self.log(f"Skipping malformed line in DNS list: {line}")
+                        continue
+
+            if new_iranian_dns or new_foreign_dns:
+                self.dns_servers["Iranian"] = new_iranian_dns
+                self.dns_servers["Foreign"] = new_foreign_dns
+                
+                self.save_main_dns_list()
+                
+                self.log("Successfully fetched and updated DNS list from GitHub.")
+                self.root.after(0, self.refresh_dns_display_after_update)
+            else:
+                self.log("Error: Fetched DNS list appears to be empty or in an invalid format.")
+                self.root.after(0, lambda: messagebox.showerror("Update Error", "The fetched DNS list from GitHub is empty or has an invalid format."))
+                self.root.after(0, lambda: self.status_label.configure(text="✗ Error: Invalid DNS list format", text_color=self.colors['error']))
+
+        except requests.exceptions.RequestException as e:
+            self.log(f"Could not update DNS list (RequestException): {e}")
+            self.root.after(0, lambda: messagebox.showerror("Update Error", f"A network error occurred while fetching the DNS list:\n\n{e}"))
+            self.root.after(0, lambda: self.status_label.configure(text="✗ Error: Failed to fetch DNS list", text_color=self.colors['error']))
+        except Exception as e:
+            self.log(f"An unexpected error occurred during DNS list update: {e}")
+            self.root.after(0, lambda: messagebox.showerror("Update Error", f"An unexpected error occurred:\n\n{e}"))
+            self.root.after(0, lambda: self.status_label.configure(text="✗ Error: Unexpected update failure", text_color=self.colors['error']))
+            
+    def refresh_dns_display_after_update(self):
+        """Refreshes the UI after a successful DNS list update."""
+        self.display_dns_for_category(self.current_category)
+        self.status_label.configure(text="✓ DNS list updated successfully!", text_color=self.colors['success'])
+        messagebox.showinfo("Update Complete", "The DNS list has been successfully updated from GitHub.")
+
     def show_delete_menu(self, event, dns_name):
         """Creates and displays a right-click context menu to delete a custom DNS."""
 
@@ -775,7 +867,6 @@ class IranDNSSwitcher:
                 hover_color=self.lighten_hex_color(self.colors['success'], 0.15)
             )
             connect_btn.pack(side="left", padx=(0, 10))
-        # --- END: New Code Added ---
 
         close_btn = ctk.CTkButton(
             button_frame, text="Close",
@@ -789,7 +880,6 @@ class IranDNSSwitcher:
         self.status_label.configure(text="Ping test complete. Results are ready.",
                                      text_color=self.colors['success'])
 
-    # --- START: New Function Added ---
     def connect_to_fastest_dns(self, fastest_dns_info):
         """Finds the full DNS info and applies the settings for the fastest DNS."""
         dns_name = fastest_dns_info['name']
@@ -798,7 +888,6 @@ class IranDNSSwitcher:
         dns_servers_list = None
         found_category = None
 
-        # Search for the DNS name in all categories to get its primary and secondary IPs
         for category, dns_list in self.dns_servers.items():
             if dns_name in dns_list:
                 dns_servers_list = dns_list[dns_name]
@@ -808,11 +897,9 @@ class IranDNSSwitcher:
         if dns_servers_list:
             self.log(f"Found '{dns_name}' in category '{found_category}' with IPs: {dns_servers_list}")
             
-            # Close the ping results window before applying the change
             if hasattr(self, 'all_ping_window') and self.all_ping_window.winfo_exists():
                 self.all_ping_window.destroy()
             
-            # Use the existing function to apply the DNS settings
             self._apply_dns_settings(dns_name, dns_servers_list)
         else:
             self.log(f"Error: Could not find the DNS server details for '{dns_name}' in self.dns_servers dictionary.")
@@ -1104,9 +1191,32 @@ class IranDNSSwitcher:
                 self.display_dns_for_category("Custom")
                 self.log(f"Custom DNS '{dns_name}' has been deleted.")
 
+    def load_main_dns_list(self):
+        """Loads the main DNS list from a local file, or uses defaults if not found."""
+        self.log("Loading main DNS list...")
+        try:
+            if os.path.exists(self.dns_list_file):
+                with open(self.dns_list_file, 'r') as f:
+                    loaded_dns = json.load(f)
+                    if "Iranian" in loaded_dns and "Foreign" in loaded_dns:
+                        self.dns_servers["Iranian"] = loaded_dns["Iranian"]
+                        self.dns_servers["Foreign"] = loaded_dns["Foreign"]
+                        self.log(f"Successfully loaded main DNS list from {self.dns_list_file}")
+                        return
+            
+            self.log("Main DNS list file not found or invalid. Using default list.")
+            self.dns_servers["Iranian"] = self.DEFAULT_DNS_SERVERS["Iranian"]
+            self.dns_servers["Foreign"] = self.DEFAULT_DNS_SERVERS["Foreign"]
+
+        except (json.JSONDecodeError, IOError) as e:
+            self.log(f"Could not load main DNS file, using defaults: {e}")
+            self.dns_servers["Iranian"] = self.DEFAULT_DNS_SERVERS["Iranian"]
+            self.dns_servers["Foreign"] = self.DEFAULT_DNS_SERVERS["Foreign"]
+
     def load_custom_dns(self):
         """Loads custom DNS entries from the save file."""
         self.log("Loading custom DNS from file...")
+        self.dns_servers["Custom"] = {}
         try:
             if os.path.exists(self.save_file):
                 with open(self.save_file, 'r') as f:
@@ -1117,6 +1227,20 @@ class IranDNSSwitcher:
                 self.log("Custom DNS file does not exist. No entries loaded.")
         except (json.JSONDecodeError, IOError) as e:
             self.log(f"Could not load custom DNS file: {e}")
+
+    def save_main_dns_list(self):
+        """Saves the current Iranian and Foreign DNS lists to a local file."""
+        self.log("Saving main DNS list to file...")
+        try:
+            data_to_save = {
+                "Iranian": self.dns_servers.get("Iranian", {}),
+                "Foreign": self.dns_servers.get("Foreign", {})
+            }
+            with open(self.dns_list_file, 'w') as f:
+                json.dump(data_to_save, f, indent=4)
+            self.log("Successfully saved main DNS list.")
+        except IOError as e:
+            self.log(f"Could not save main DNS list file: {e}")
 
     def save_custom_dns(self):
         """Saves custom DNS entries to the save file."""
@@ -1278,6 +1402,7 @@ class IranDNSSwitcher:
                     timeout=5
                 )
             except UnicodeDecodeError:
+                # Fallback encoding if 'oem' fails
                 result = subprocess.run(
                     cmd,
                     shell=True,
@@ -1331,3 +1456,4 @@ if __name__ == "__main__":
     # Run
     app = IranDNSSwitcher()
     app.run()
+
