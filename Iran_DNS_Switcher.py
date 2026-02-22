@@ -1,4 +1,4 @@
-                                           # Iran DNS Changer version 2.5
+                                            # Iran DNS Changer version 2.6
 
 # --- Imports ---
 import customtkinter as ctk
@@ -16,6 +16,10 @@ import threading
 import json
 from datetime import datetime
 
+import winreg
+from PIL import Image
+import pystray
+
 class IranDNSSwitcher:
     def __init__(self):
         # --- Logging ---
@@ -32,7 +36,7 @@ class IranDNSSwitcher:
         self.root.resizable(False, False)
 
         # --- Version and GitHub Info for Update Check ---
-        self.current_version = "v2.5"
+        self.current_version = "v2.6"
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
         
         # --- File for storing custom DNS ---
@@ -43,6 +47,13 @@ class IranDNSSwitcher:
             self.log(f"Created application data folder at: {app_folder}")
         self.save_file = os.path.join(app_folder, "custom_dns.json")
         self.dns_list_file = os.path.join(app_folder, "dns_list.json") # File for storing fetched DNS
+        
+        # --- Settings File & Variables ---
+        self.settings_file = os.path.join(app_folder, "settings.json")
+        self.startup_var = ctk.BooleanVar(value=False)
+        self.tray_var = ctk.BooleanVar(value=False)
+        self.tray_icon = None
+        self.icon_path = None
 
         # --- Center Window ---
         self.center_window(700, 650)
@@ -54,6 +65,7 @@ class IranDNSSwitcher:
 
             if os.path.exists(icon_path):
                 self.root.iconbitmap(icon_path)
+                self.icon_path = icon_path # Save for tray icon
                 self.log("Application icon loaded successfully.")
             else:
                 self.log(f"Warning: Icon file not found at {icon_path}")
@@ -195,6 +207,10 @@ class IranDNSSwitcher:
         self.load_custom_dns()
         
         self.setup_ui()
+        self.apply_initial_settings()
+        
+        # Handle window close event
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # --- Start Update Check in a Background Thread ---
         update_thread = threading.Thread(target=self.check_for_updates,
@@ -424,6 +440,34 @@ class IranDNSSwitcher:
         )
         self.network_btn.pack(side="left", padx=(5,0))
 
+        # --- Settings Menu Button ---
+        self.settings_menubutton = ctk.CTkButton(
+            self.menu_bar_frame, text="Settings",
+            font=self.font_button_main,
+            fg_color="transparent",
+            hover_color=self.colors['secondary_accent_gray'],
+            width=80, corner_radius=0
+        )
+        self.settings_menubutton.pack(side="left")
+
+        # Standard Tkinter Menu for Dropdown
+        self.settings_menu = tkinter.Menu(self.menu_bar_frame, tearoff=0,
+                                           background=self.colors['frame_bg'],
+                                           foreground=self.colors['text_primary'],
+                                           activebackground=self.colors['secondary_accent_gray'],
+                                           activeforeground=self.colors['text_primary'],
+                                           bd=1, relief="solid")
+        
+        self.settings_menu.add_checkbutton(label="Run on Windows Startup",
+                                           variable=self.startup_var,
+                                           command=self.toggle_startup)
+        
+        self.settings_menu.add_checkbutton(label="Minimize to System Tray",
+                                           variable=self.tray_var,
+                                           command=self.save_settings)
+
+        self.settings_menubutton.bind("<Button-1>", self.show_settings_menu)
+
         # Log Button
         log_btn = ctk.CTkButton(
             self.menu_bar_frame, text="Log",
@@ -449,6 +493,12 @@ class IranDNSSwitcher:
         update_dns_btn.pack(side="left")
         
         self.network_menu_window = None
+
+    def show_settings_menu(self, event):
+        """Displays the settings menu at the button's position."""
+        x = self.settings_menubutton.winfo_rootx()
+        y = self.settings_menubutton.winfo_rooty() + self.settings_menubutton.winfo_height()
+        self.settings_menu.tk_popup(x, y)
 
     def toggle_network_menu(self):
         """Creates and shows or hides the network dropdown menu."""
@@ -1344,7 +1394,6 @@ class IranDNSSwitcher:
                                             encoding=cli_encoding,
                                               errors='ignore')
                 else:
-
                     pass
 
                 self.log(f"Executing command: {cmd_flush_dns}")
@@ -1441,7 +1490,192 @@ class IranDNSSwitcher:
         except Exception as e:
             self.log(f"Failed to get DNS information: {e}")
             messagebox.showerror("Error", f"Failed to get DNS information:\n{str(e)}")
-    
+
+
+    # ==========================================
+    # --- SETTINGS, STARTUP, AND TRAY ---
+    # ==========================================
+
+    def on_closing(self):
+        """Handles the window close event based on settings."""
+        if self.tray_var.get():
+            self.hide_window_to_tray()
+        else:
+            if messagebox.askyesno("Confirm Exit", "Are you sure you want to exit?"):
+                if self.tray_icon:
+                    self.tray_icon.stop()
+                    self.tray_icon = None
+                self.root.destroy()
+                self.log("Application closing normally.")
+            else:
+                self.log("Exit cancelled by user.")
+
+    def load_settings(self):
+        """Loads settings from the settings file."""
+        self.log("Loading application settings...")
+        try:
+            if os.path.exists(self.settings_file):
+                with open(self.settings_file, 'r') as f:
+                    settings = json.load(f)
+                    self.startup_var.set(settings.get("run_on_startup", False))
+                    self.tray_var.set(settings.get("minimize_to_tray", False))
+                    self.log("Settings loaded successfully.")
+            else:
+                self.log("Settings file not found, using default settings (False).")
+        except (json.JSONDecodeError, IOError) as e:
+            self.log(f"Could not load settings file, using defaults: {e}")
+
+    def save_settings(self):
+        """Saves current settings to the file."""
+        self.log("Saving application settings...")
+        try:
+            settings = {
+                "run_on_startup": self.startup_var.get(),
+                "minimize_to_tray": self.tray_var.get()
+            }
+            with open(self.settings_file, 'w') as f:
+                json.dump(settings, f, indent=4)
+            self.log("Settings saved successfully.")
+        except IOError as e:
+            self.log(f"Could not save settings file: {e}")
+
+    def apply_initial_settings(self):
+        """Syncs settings on application start."""
+        self.log("Applying initial settings...")
+        self.load_settings()
+        
+        is_in_registry = self._is_in_startup()
+        self.startup_var.set(is_in_registry)
+        self.save_settings() 
+
+        self.log(f"Startup (from registry): {'Enabled' if is_in_registry else 'Disabled'}")
+        self.log(f"Minimize to Tray (from file): {'Enabled' if self.tray_var.get() else 'Disabled'}")
+
+    def _get_app_path(self):
+        """Gets the correct path for the executable, works for frozen (.exe) and scripts (.py)."""
+        if getattr(sys, 'frozen', False):
+            # If the application is run as a bundle by PyInstaller
+            return f'"{sys.executable}"'
+        else:
+            # If the application is run as a python script
+            return f'"{sys.executable}" "{os.path.abspath(sys.argv[0])}"'
+
+    def add_to_startup(self):
+        """Adds the application to Windows startup via registry. No admin required for HKCU."""
+        app_name = "IranDNSSwitcher"
+        app_path = self._get_app_path()
+        try:
+            key = winreg.HKEY_CURRENT_USER
+            key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+            with winreg.OpenKey(key, key_path, 0, winreg.KEY_SET_VALUE) as registry_key:
+                winreg.SetValueEx(registry_key, app_name, 0, winreg.REG_SZ, app_path)
+            self.log(f"Application added to startup: {app_path}")
+            return True
+        except Exception as e:
+            self.log(f"Error adding to startup: {e}")
+            messagebox.showerror("Registry Error", f"Failed to add to startup:\n{e}")
+            return False
+
+    def remove_from_startup(self):
+        """Removes the application from Windows startup. No admin required for HKCU."""
+        app_name = "IranDNSSwitcher"
+        try:
+            key = winreg.HKEY_CURRENT_USER
+            key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+            with winreg.OpenKey(key, key_path, 0, winreg.KEY_SET_VALUE) as registry_key:
+                winreg.DeleteValue(registry_key, app_name)
+            self.log("Application removed from startup.")
+            return True
+        except FileNotFoundError:
+            self.log("Startup entry not found, nothing to remove.")
+            return True 
+        except Exception as e:
+            self.log(f"Error removing from startup: {e}")
+            messagebox.showerror("Registry Error", f"Failed to remove from startup:\n{e}")
+            return False
+
+    def _is_in_startup(self):
+        """Checks if the application is already in Windows startup."""
+        app_name = "IranDNSSwitcher"
+        try:
+            key = winreg.HKEY_CURRENT_USER
+            key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+            with winreg.OpenKey(key, key_path, 0, winreg.KEY_READ) as registry_key:
+                winreg.QueryValueEx(registry_key, app_name)
+            return True
+        except FileNotFoundError:
+            return False
+        except Exception as e:
+            self.log(f"Error checking startup status: {e}")
+            return False
+
+    def toggle_startup(self):
+        """Toggles the application's presence in Windows startup."""
+        is_enabled = self.startup_var.get()
+        success = False
+
+        if is_enabled:
+            self.log("User wants to enable startup.")
+            success = self.add_to_startup()
+        else:
+            self.log("User wants to disable startup.")
+            success = self.remove_from_startup()
+        
+        if success:
+            self.save_settings()
+        else:
+            self.log("Startup toggle failed, reverting checkbox state.")
+            self.startup_var.set(not is_enabled)
+
+    def hide_window_to_tray(self):
+        """Hides the main window and shows the system tray icon."""
+        self.root.withdraw()
+        self.log("Window hidden to system tray.")
+        
+        if self.tray_icon is not None:
+            return 
+        
+        threading.Thread(target=self._create_tray_icon, daemon=True).start()
+
+    def _create_tray_icon(self):
+        """Creates and runs the pystray icon."""
+        image = None
+        if self.icon_path:
+            try:
+                image = Image.open(self.icon_path)
+            except Exception as e:
+                self.log(f"Failed to load icon for tray from path '{self.icon_path}': {e}")
+        
+        if not image:
+            self.log("Creating fallback image for tray icon.")
+            width, height = 64, 64
+            color1 = (211, 47, 47) 
+            image = Image.new('RGB', (width, height), color1)
+
+        menu = (pystray.MenuItem('Show App', self.show_window_from_tray, default=True),
+                pystray.MenuItem('Exit', self.exit_app_from_tray))
+        
+        self.tray_icon = pystray.Icon("Iran DNS Switcher", image, "Iran DNS Switcher", menu)
+        self.log("System tray icon started.")
+        self.tray_icon.run()
+
+    def show_window_from_tray(self, icon=None, item=None):
+        """Shows the main window and stops the tray icon."""
+        self.log("Showing window from tray.")
+        if self.tray_icon:
+            self.tray_icon.stop()
+            self.tray_icon = None  
+        self.root.after(0, self.root.deiconify)
+
+    def exit_app_from_tray(self, icon=None, item=None):
+        """Exits the application from the tray menu safely."""
+        self.log("Exit command received from tray icon.")
+        if self.tray_icon:
+            self.tray_icon.stop()
+            self.tray_icon = None  
+        self.root.after(0, self.root.destroy)
+
+
     def run(self):
         self.root.mainloop()
         self.log("Application closing.")
@@ -1456,4 +1690,3 @@ if __name__ == "__main__":
     # Run
     app = IranDNSSwitcher()
     app.run()
-
