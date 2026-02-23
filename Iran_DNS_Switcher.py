@@ -627,7 +627,7 @@ class IranDNSSwitcher:
             
             button_text = f"{dns_name} | ...\n{dns_values[0]}"
             if len(dns_values) > 1 and dns_values[1]:
-                button_text += f" | {dns_values[1]}"
+                button_text += f" - {dns_values[1]}"
 
             btn = ctk.CTkButton(
                 self.dns_scroll_frame, text=button_text, font=self.font_dns_button_name, 
@@ -679,7 +679,7 @@ class IranDNSSwitcher:
             
             new_text = f"{dns_name} | {ping_str}\n{dns_values[0]}"
             if len(dns_values) > 1 and dns_values[1]:
-                new_text += f" | {dns_values[1]}"
+                new_text += f" - {dns_values[1]}"
             btn.configure(text=new_text)
 
     def get_all_network_interfaces(self):
@@ -719,6 +719,12 @@ class IranDNSSwitcher:
         self.log_window.geometry("700x500")
         self.log_window.attributes("-topmost", True)
         self.log_window.transient(self.root)
+
+        if self.icon_path and os.path.exists(self.icon_path):
+            try:
+                self.log_window.after(200, lambda: self.log_window.iconbitmap(self.icon_path))
+            except Exception:
+                pass
 
         dialog_frame = ctk.CTkFrame(self.log_window, fg_color=self.colors['frame_bg'])
         dialog_frame.pack(expand=True, fill="both", padx=10, pady=10)
@@ -931,6 +937,12 @@ class IranDNSSwitcher:
         self.all_ping_window.resizable(False, False)
         self.all_ping_window.attributes("-topmost", True)
         self.all_ping_window.transient(self.root)
+
+        if self.icon_path and os.path.exists(self.icon_path):
+            try:
+                self.all_ping_window.after(200, lambda: self.all_ping_window.iconbitmap(self.icon_path))
+            except Exception:
+                pass
 
         dialog_frame = ctk.CTkFrame(self.all_ping_window, fg_color=self.colors['frame_bg'])
         dialog_frame.pack(expand=True, fill="both", padx=20, pady=20)
@@ -1220,6 +1232,12 @@ class IranDNSSwitcher:
         self.add_dns_window.resizable(False, False)
         self.add_dns_window.attributes("-topmost", True)
         self.add_dns_window.transient(self.root)
+
+        if self.icon_path and os.path.exists(self.icon_path):
+            try:
+                self.add_dns_window.after(200, lambda: self.add_dns_window.iconbitmap(self.icon_path))
+            except Exception:
+                pass
 
         dialog_frame = ctk.CTkFrame(self.add_dns_window,
                                      fg_color=self.colors['frame_bg'])
