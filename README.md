@@ -7,7 +7,7 @@
 
 صرفا جهت راحتی شما :)
 
-**نسخه فعلی:** V2.5
+**نسخه فعلی:** V2.6
 
 ## ✨ ویژگی‌ها
 
@@ -20,6 +20,10 @@
 - قابلیت گرفتن پینگ تمام DNS
 - قابلیت افزودن DNS دلخواه به برنامه (کاستوم دی ان اس)
 - مشاهده تمام شبکه های متصل و انتخاب (در صورت نیاز)
+- لایو پینگ (پینگ لحظه ای تمام دی ان اس ها)
+- اپدیت لیست دی ان اس ها با زدن یک کلیک
+- قابلیت Windows Startup و System tray
+- اکسپورت و ایمپورت دی ان اس ها
 - اجرا با دسترسی Administrator  
 
 ## 🖼️ نمایی از برنامه
@@ -34,7 +38,7 @@
 
 ![Total Downloads](https://img.shields.io/github/downloads/mehrshadasgary/Iran-DNS-Switcher/total.svg)
 
-📦 [دانلود نسخه اجرایی (EXE)](https://github.com/mehrshadasgary/Iran-DNS-Switcher/releases/latest/download/Iran_DNS_Switcher.exe)
+📦 [دانلود نسخه اجرایی (EXE)](https://github.com/mehrshadasgary/Iran-DNS-Switcher/releases/download/v2.6/Iran.DNS.Switcher.exe)
 
 > آخرین نسخه منتشرشده از برنامه را از لینک بالا دانلود کنید.
 > 
