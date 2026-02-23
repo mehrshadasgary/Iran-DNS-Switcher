@@ -1,4 +1,4 @@
-                                            # Iran DNS Changer version 2.6
+# Iran DNS Changer version 2.6
 
 # --- Imports ---
 import customtkinter as ctk
@@ -15,6 +15,7 @@ import requests
 import threading
 import json
 from datetime import datetime
+import concurrent.futures
 
 import winreg
 from PIL import Image
@@ -228,6 +229,10 @@ class IranDNSSwitcher:
         
         # --- State for the current category ---
         self.current_category = "Iranian"
+
+        # --- Live Ping State ---
+        self.ping_generation = 0
+        self.active_ping_buttons = {}
 
         # --- Variable to store selected network interface ---
         self.selected_interface_var = ctk.StringVar(value="auto")
@@ -611,10 +616,15 @@ class IranDNSSwitcher:
         row, col = 0, 0
         button_height = 70
 
+        self.ping_generation += 1
+        current_gen = self.ping_generation
+        self.active_ping_buttons.clear()
+
         for dns_name, dns_values in dns_list.items():
             base_color = category_colors.get(category_name)
             hover_color = self.lighten_hex_color(base_color, 0.15)
-            button_text = f"{dns_name}\n{dns_values[0]}"
+            
+            button_text = f"{dns_name} | ...\n{dns_values[0]}"
             if len(dns_values) > 1 and dns_values[1]:
                 button_text += f" | {dns_values[1]}"
 
@@ -627,6 +637,8 @@ class IranDNSSwitcher:
             )
             btn.grid(row=row, column=col, padx=5, pady=5, sticky='nsew')
             
+            self.active_ping_buttons[dns_name] = btn
+
             if category_name == "Custom":
                 btn.bind("<Button-3>", lambda event, name=dns_name: self.show_delete_menu(event, name))
 
@@ -634,6 +646,40 @@ class IranDNSSwitcher:
             if col > 2:
                 col = 0
                 row += 1
+                
+        threading.Thread(target=self._run_live_pings, args=(dns_list, current_gen), daemon=True).start()
+
+    def _run_live_pings(self, dns_list, generation):
+        """Runs ping for the currently displayed category in the background."""
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            futures = {}
+            for dns_name, dns_values in dns_list.items():
+                primary_ip = dns_values[0]
+                futures[executor.submit(self.ping_dns_server, primary_ip)] = (dns_name, dns_values)
+
+            for future in concurrent.futures.as_completed(futures):
+                if self.ping_generation != generation:
+                    break 
+
+                dns_name, dns_values = futures[future]
+                try:
+                    latency, display_string = future.result()
+                    self.root.after(0, self._update_button_ping_text, dns_name, dns_values, display_string, generation)
+                except Exception as e:
+                    self.log(f"Live ping failed for {dns_name}: {e}")
+
+    def _update_button_ping_text(self, dns_name, dns_values, ping_str, generation):
+        """Updates the button text with the live ping result."""
+        if self.ping_generation != generation:
+            return
+        
+        if dns_name in self.active_ping_buttons:
+            btn = self.active_ping_buttons[dns_name]
+            
+            new_text = f"{dns_name} | {ping_str}\n{dns_values[0]}"
+            if len(dns_values) > 1 and dns_values[1]:
+                new_text += f" | {dns_values[1]}"
+            btn.configure(text=new_text)
 
     def get_all_network_interfaces(self):
         self.log("Attempting to get all network interfaces...")
