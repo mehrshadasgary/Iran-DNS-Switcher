@@ -2,7 +2,7 @@
 
 # --- Imports ---
 import customtkinter as ctk
-from tkinter import messagebox 
+from tkinter import messagebox, filedialog
 import tkinter 
 
 import subprocess
@@ -46,6 +46,7 @@ class IranDNSSwitcher:
         if not os.path.exists(app_folder):
             os.makedirs(app_folder)
             self.log(f"Created application data folder at: {app_folder}")
+        
         self.save_file = os.path.join(app_folder, "custom_dns.json")
         self.dns_list_file = os.path.join(app_folder, "dns_list.json") # File for storing fetched DNS
         
@@ -1208,14 +1209,14 @@ class IranDNSSwitcher:
 
 
     def open_add_custom_dns_window(self):
-        """Opens a new window to add a custom DNS."""
+        """Opens a new window to add a custom DNS and manage backups."""
         if hasattr(self, 'add_dns_window') and self.add_dns_window.winfo_exists():
             self.add_dns_window.focus()
             return
 
         self.add_dns_window = ctk.CTkToplevel(self.root)
-        self.add_dns_window.title("Add Custom DNS")
-        self.add_dns_window.geometry("400x300")
+        self.add_dns_window.title("Manage Custom DNS")
+        self.add_dns_window.geometry("400x380")
         self.add_dns_window.resizable(False, False)
         self.add_dns_window.attributes("-topmost", True)
         self.add_dns_window.transient(self.root)
@@ -1253,7 +1254,7 @@ class IranDNSSwitcher:
             font=self.font_info_text,
             height=35
         )
-        secondary_entry.pack(fill='x', pady=(0,20))
+        secondary_entry.pack(fill='x', pady=(0,15))
 
         save_btn = ctk.CTkButton(
             dialog_frame, text="Save DNS",
@@ -1263,7 +1264,91 @@ class IranDNSSwitcher:
             font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'],
             hover_color=self.colors['secondary_accent_gray_hover']
         )
-        save_btn.pack()
+        save_btn.pack(pady=(0, 15))
+        
+        # --- Backup and Restore Section ---
+        separator = ctk.CTkFrame(dialog_frame, height=2, fg_color=self.colors['secondary_accent_gray'])
+        separator.pack(fill='x', pady=(0, 15))
+        
+        backup_label = ctk.CTkLabel(dialog_frame, text="Backup & Restore:", font=self.font_info_text, text_color=self.colors['text_secondary'])
+        backup_label.pack(anchor='w', pady=(0, 5))
+        
+        actions_frame = ctk.CTkFrame(dialog_frame, fg_color="transparent")
+        actions_frame.pack(fill='x')
+        
+        export_btn = ctk.CTkButton(
+            actions_frame, text="Export JSON", 
+            command=self.export_custom_dns, font=self.font_button_main, 
+            fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover']
+        )
+        export_btn.pack(side="left", expand=True, padx=(0, 5))
+        
+        import_btn = ctk.CTkButton(
+            actions_frame, text="Import JSON", 
+            command=self.import_custom_dns, font=self.font_button_main, 
+            fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover']
+        )
+        import_btn.pack(side="right", expand=True, padx=(5, 0))
+
+    def export_custom_dns(self):
+        """Exports custom DNS servers to a JSON file."""
+        if not self.dns_servers.get("Custom"):
+            messagebox.showinfo("Export", "No custom DNS servers found to export.", parent=self.add_dns_window)
+            return
+
+        filepath = filedialog.asksaveasfilename(
+            parent=self.add_dns_window,
+            defaultextension=".json",
+            filetypes=[("JSON Files", "*.json")],
+            title="Export Custom DNS",
+            initialfile="IranDNSSwitcher_Backup.json"
+        )
+
+        if filepath:
+            try:
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    json.dump(self.dns_servers["Custom"], f, indent=4)
+                self.log(f"Exported custom DNS to: {filepath}")
+                messagebox.showinfo("Export Successful", f"Custom DNS successfully exported to:\n{filepath}", parent=self.add_dns_window)
+            except Exception as e:
+                self.log(f"Export failed: {e}")
+                messagebox.showerror("Export Failed", f"Failed to export custom DNS:\n{e}", parent=self.add_dns_window)
+
+    def import_custom_dns(self):
+        """Imports custom DNS servers from a JSON file."""
+        filepath = filedialog.askopenfilename(
+            parent=self.add_dns_window,
+            filetypes=[("JSON Files", "*.json")],
+            title="Import Custom DNS"
+        )
+
+        if filepath:
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    imported_data = json.load(f)
+
+                if not isinstance(imported_data, dict):
+                    raise ValueError("Invalid format. Expected a dictionary structure.")
+
+                added_count = 0
+                for name, ips in imported_data.items():
+                    if isinstance(ips, list) and len(ips) >= 1:
+                        if name not in self.dns_servers["Custom"]:
+                            self.dns_servers["Custom"][name] = ips
+                            added_count += 1
+                            self.log(f"Imported custom DNS: {name} -> {ips}")
+
+                if added_count > 0:
+                    self.save_custom_dns()
+                    if self.current_category == "Custom":
+                        self.display_dns_for_category("Custom")
+                    messagebox.showinfo("Import Successful", f"Successfully imported {added_count} new DNS entries.", parent=self.add_dns_window)
+                else:
+                    messagebox.showinfo("Import Info", "No new DNS entries were found. All entries in the file already exist.", parent=self.add_dns_window)
+
+            except Exception as e:
+                self.log(f"Import failed: {e}")
+                messagebox.showerror("Import Failed", f"Failed to import custom DNS. Ensure it's a valid JSON file.\nError: {e}", parent=self.add_dns_window)
 
     def add_custom_dns(self, custom_name, primary_dns, secondary_dns):
         """Validates and adds the new custom DNS to the list."""
