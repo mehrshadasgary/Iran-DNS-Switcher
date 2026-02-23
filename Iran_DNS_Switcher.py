@@ -1,4 +1,4 @@
-# Iran DNS Changer version 2.6
+                                                # Iran DNS Changer version 2.6
 
 # --- Imports ---
 import customtkinter as ctk
@@ -1219,6 +1219,29 @@ class IranDNSSwitcher:
                 return True
         return False
 
+    def _add_context_menu(self, widget):
+        """Adds a right-click context menu (Cut, Copy, Paste) to the given entry widget."""
+        menu = tkinter.Menu(widget, tearoff=0, bg=self.colors['frame_bg'],
+                            fg=self.colors['text_primary'], activebackground=self.colors['secondary_accent_gray'],
+                            activeforeground=self.colors['text_primary'], bd=1, relief="solid")
+        
+
+        target = widget._entry if hasattr(widget, '_entry') else widget
+
+        menu.add_command(label="Cut", command=lambda: target.event_generate("<<Cut>>"))
+        menu.add_command(label="Copy", command=lambda: target.event_generate("<<Copy>>"))
+        menu.add_command(label="Paste", command=lambda: target.event_generate("<<Paste>>"))
+
+        def show_menu(event):
+            target.focus_set()
+            try:
+                menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                menu.grab_release()
+
+        widget.bind("<Button-3>", show_menu)
+        if hasattr(widget, '_entry'):
+            widget._entry.bind("<Button-3>", show_menu)
 
     def open_add_custom_dns_window(self):
         """Opens a new window to add a custom DNS and manage backups."""
@@ -1257,6 +1280,7 @@ class IranDNSSwitcher:
             height=35
         )
         name_entry.pack(fill='x', pady=(0,10))
+        self._add_context_menu(name_entry)
 
         primary_entry = ctk.CTkEntry(
             dialog_frame,
@@ -1265,6 +1289,7 @@ class IranDNSSwitcher:
             height=35
         )
         primary_entry.pack(fill='x', pady=(0,10))
+        self._add_context_menu(primary_entry)
 
         secondary_entry = ctk.CTkEntry(
             dialog_frame,
@@ -1273,6 +1298,7 @@ class IranDNSSwitcher:
             height=35
         )
         secondary_entry.pack(fill='x', pady=(0,15))
+        self._add_context_menu(secondary_entry)
 
         save_btn = ctk.CTkButton(
             dialog_frame, text="Save DNS",
