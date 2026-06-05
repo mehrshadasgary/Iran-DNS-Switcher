@@ -1,4 +1,4 @@
-                                                # Iran DNS Changer version 2.6
+                                                    # Iran DNS Changer version 2.7
 
 # --- Imports ---
 import customtkinter as ctk
@@ -20,6 +20,10 @@ import concurrent.futures
 import winreg
 from PIL import Image
 import pystray
+
+import socket
+import urllib.parse
+import ssl
 
 class IranDNSSwitcher:
     def __init__(self):
@@ -475,6 +479,18 @@ class IranDNSSwitcher:
             command=self.toggle_network_menu
         )
         self.network_btn.pack(side="left", padx=(5,0))
+
+        # --- NEW: URL Scanner Button ---
+        url_scanner_btn = ctk.CTkButton(
+            self.menu_bar_frame, text="URL Scanner",
+            font=self.font_button_main,
+            fg_color="transparent",
+            hover_color=self.colors['secondary_accent_gray'],
+            width=100,
+            corner_radius=0,
+            command=self.show_url_scanner_window
+        )
+        url_scanner_btn.pack(side="left")
 
         # --- Settings Menu Button ---
         self.settings_menubutton = ctk.CTkButton(
@@ -1879,6 +1895,312 @@ class IranDNSSwitcher:
             self.tray_icon.stop()
             self.tray_icon = None  
         self.root.after(0, self.root.destroy)
+
+    # URL SCANNER (SANCTION BYPASS)
+    
+    def show_url_scanner_window(self):
+        if hasattr(self, 'url_scanner_window') and self.url_scanner_window.winfo_exists():
+            self.url_scanner_window.focus()
+            return
+
+        self.url_scanner_window = ctk.CTkToplevel(self.root)
+        self.url_scanner_window.title("Sanction Bypass Scanner")
+        
+        window_width = 500
+        window_height = 600
+        self.root.update_idletasks()
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - (window_width // 2)
+        y = self.root.winfo_y() + (self.root.winfo_height() // 2) - (window_height // 2)
+        self.url_scanner_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        
+        self.url_scanner_window.attributes("-topmost", True)
+        self.url_scanner_window.transient(self.root)
+
+        if self.icon_path and os.path.exists(self.icon_path):
+            try:
+                self.url_scanner_window.after(200, lambda: self.url_scanner_window.iconbitmap(self.icon_path))
+            except Exception:
+                pass
+
+        dialog_frame = ctk.CTkFrame(self.url_scanner_window, fg_color=self.colors['frame_bg'])
+        dialog_frame.pack(expand=True, fill="both", padx=15, pady=15)
+
+        title_label = ctk.CTkLabel(dialog_frame, text="Find Working DNS for Restricted Websites", font=self.font_section_title, text_color=self.colors['text_primary'])
+        title_label.pack(pady=(10, 15))
+
+        self.scan_iranian_var = ctk.BooleanVar(value=True)
+        self.scan_foreign_var = ctk.BooleanVar(value=False)
+        self.scan_custom_var = ctk.BooleanVar(value=False)
+        self.stop_scan_flag = False
+
+        cb_frame = ctk.CTkFrame(dialog_frame, fg_color="transparent")
+        cb_frame.pack(fill="x", padx=5, pady=(0, 10))
+
+        ctk.CTkCheckBox(cb_frame, text="Iranian DNS", variable=self.scan_iranian_var, font=self.font_info_text).pack(side="left", padx=(0, 10))
+        ctk.CTkCheckBox(cb_frame, text="Foreign DNS", variable=self.scan_foreign_var, font=self.font_info_text).pack(side="left", padx=(0, 10))
+        ctk.CTkCheckBox(cb_frame, text="Custom DNS", variable=self.scan_custom_var, font=self.font_info_text).pack(side="left")
+
+        input_frame = ctk.CTkFrame(dialog_frame, fg_color="transparent")
+        input_frame.pack(fill="x", padx=5, pady=5)
+
+        url_entry = ctk.CTkEntry(input_frame, placeholder_text="Website URL (e.g., spotify.com)", font=self.font_info_text, height=35)
+        url_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self._add_context_menu(url_entry)
+
+        # Added Stop Button
+        stop_btn = ctk.CTkButton(input_frame, text="Stop", font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'], width=70, height=35, state="disabled")
+        stop_btn.pack(side="right")
+        
+        scan_btn = ctk.CTkButton(input_frame, text="Scan", font=self.font_button_main, fg_color=self.colors['primary_accent_main_red'], hover_color=self.colors['primary_accent_hover_red'], width=70, height=35)
+        scan_btn.pack(side="right", padx=(5, 5))
+
+        result_textbox = ctk.CTkTextbox(dialog_frame, wrap="word", font=self.font_info_text)
+        result_textbox.pack(expand=True, fill="both", padx=5, pady=(10, 10))
+
+        action_frame = ctk.CTkFrame(dialog_frame, fg_color="transparent")
+        action_frame.pack(fill="x", padx=5, pady=(0, 5))
+        
+        self.working_dns_combo = ctk.CTkOptionMenu(
+            action_frame, 
+            values=["Waiting for scan..."], 
+            state="disabled", 
+            font=self.font_info_text,
+            fg_color=self.colors['secondary_accent_gray'],
+            button_color=self.colors['secondary_accent_gray'],
+            button_hover_color=self.colors['secondary_accent_gray_hover'],
+            dynamic_resizing=False
+        )
+        self.working_dns_combo.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        
+        self.connect_working_btn = ctk.CTkButton(
+            action_frame, 
+            text="Connect to Selected", 
+            font=self.font_button_main, 
+            fg_color=self.colors['success'], 
+            hover_color=self.lighten_hex_color(self.colors['success'], 0.15), 
+            state="disabled", 
+            command=self.connect_from_scanner,
+            width=140
+        )
+        self.connect_working_btn.pack(side="right")
+
+        scan_btn.configure(command=lambda: self.start_url_scan(url_entry.get(), result_textbox, scan_btn, stop_btn))
+        stop_btn.configure(command=self.stop_url_scan)
+
+    def connect_from_scanner(self):
+        dns_name = self.working_dns_combo.get()
+        if not dns_name or dns_name in ["No working DNS found", "Waiting for scan...", "Scanning..."]:
+            return
+            
+        dns_servers_list = None
+        for category, dns_list in self.dns_servers.items():
+            if dns_name in dns_list:
+                dns_servers_list = dns_list[dns_name]
+                break
+                
+        if dns_servers_list:
+            if hasattr(self, 'url_scanner_window') and self.url_scanner_window.winfo_exists():
+                self.url_scanner_window.destroy()
+            self._apply_dns_settings(dns_name, dns_servers_list)
+
+    def stop_url_scan(self):
+        """Sets the flag to stop the scanning process immediately."""
+        self.stop_scan_flag = True
+
+    def start_url_scan(self, url, text_box, scan_btn, stop_btn):
+        url = url.strip()
+        if not url:
+            messagebox.showwarning("Input Error", "Please enter a valid URL.", parent=self.url_scanner_window)
+            return
+
+        servers_to_test = {}
+        if self.scan_iranian_var.get():
+            servers_to_test.update(self.dns_servers.get("Iranian", {}))
+        if self.scan_foreign_var.get():
+            servers_to_test.update(self.dns_servers.get("Foreign", {}))
+        if self.scan_custom_var.get():
+            servers_to_test.update(self.dns_servers.get("Custom", {}))
+
+        if not servers_to_test:
+            messagebox.showwarning("Selection Error", "Please select at least one DNS category to scan.", parent=self.url_scanner_window)
+            return
+
+        self.stop_scan_flag = False
+
+        text_box.delete("1.0", "end")
+        scan_btn.configure(state="disabled", text="Scanning...")
+        stop_btn.configure(state="normal", fg_color=self.colors['primary_accent_main_red'])
+        
+        self.working_dns_combo.configure(values=["Scanning..."], state="disabled")
+        self.working_dns_combo.set("Scanning...")
+        self.connect_working_btn.configure(state="disabled")
+        
+        scan_thread = threading.Thread(target=self._scan_url_threaded, args=(url, text_box, scan_btn, stop_btn, servers_to_test), daemon=True)
+        scan_thread.start()
+
+    def _scan_url_threaded(self, url, text_box, scan_btn, stop_btn, servers_to_test):
+        working_servers = []
+        try:
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            parsed_url = urllib.parse.urlparse(url)
+            initial_domain = parsed_url.netloc
+            if not initial_domain:
+                initial_domain = url
+            
+            initial_domain = initial_domain.split(':')[0] # Remove port if present
+
+            self.root.after(0, lambda: text_box.insert("end", f"Target Domain: {initial_domain}\n"))
+            self.root.after(0, lambda: text_box.insert("end", "-"*45 + "\n"))
+
+            for name, ips in servers_to_test.items():
+                if getattr(self, 'stop_scan_flag', False):
+                    self.root.after(0, lambda: text_box.insert("end", "⚠️ Scan stopped by user.\n"))
+                    break
+
+                if not ips or not ips[0]:
+                    continue
+                primary_ip = ips[0]
+                
+                self.root.after(0, lambda n=name: text_box.insert("end", f"Testing {n} ... "))
+                self.root.after(0, text_box.see, "end")
+
+                try:
+                    current_domain = initial_domain
+                    redirect_count = 0
+                    max_redirects = 3
+                    
+                    while redirect_count <= max_redirects:
+                        if getattr(self, 'stop_scan_flag', False):
+                            break
+
+                        cmd = ["nslookup", current_domain, primary_ip]
+                        startupinfo = None
+                        if sys.platform == "win32":
+                            startupinfo = subprocess.STARTUPINFO()
+                            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                            startupinfo.wShowWindow = subprocess.SW_HIDE
+
+                        res = subprocess.run(cmd, capture_output=True, text=True, startupinfo=startupinfo, timeout=4)
+
+                        if res.returncode == 0:
+                            ip_pattern = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
+                            found_ips = re.findall(ip_pattern, res.stdout)
+                            resolved_ips = [ip for ip in found_ips if ip != primary_ip]
+
+                            if resolved_ips:
+                                test_ip = resolved_ips[-1]
+                                try:
+                                    if getattr(self, 'stop_scan_flag', False):
+                                        break
+
+                                    context = ssl.create_default_context()
+                                    context.check_hostname = False
+                                    context.verify_mode = ssl.CERT_NONE
+                                    
+                                    with socket.create_connection((test_ip, 443), timeout=4) as sock:
+                                        with context.wrap_socket(sock, server_hostname=current_domain) as ssock:
+                                            # Send a more complete HTTP GET request mimicking a real browser
+                                            request = (
+                                                f"GET / HTTP/1.1\r\n"
+                                                f"Host: {current_domain}\r\n"
+                                                f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\r\n"
+                                                f"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n"
+                                                f"Accept-Language: en-US,en;q=0.5\r\n"
+                                                f"Connection: close\r\n\r\n"
+                                            )
+                                            ssock.sendall(request.encode())
+                                            
+                                            responseBytes = b""
+                                            while True:
+                                                chunk = ssock.recv(4096)
+                                                if not chunk:
+                                                    break
+                                                responseBytes += chunk
+                                                if len(responseBytes) > 8192: # limit size to avoid hanging
+                                                    break
+                                                    
+                                            response = responseBytes.decode(errors='ignore')
+                                            status_line = response.split('\r\n')[0] if '\r\n' in response else response
+                                            
+                                            if any(code in status_line for code in ["200", "201", "202"]):
+                                                # Extra check for sneaky blocks hidden in 200 OK responses
+                                                if "Access Denied" in response or "403 Forbidden" in response:
+                                                     self.root.after(0, lambda: text_box.insert("end", f"❌ Blocked (Access Denied by Firewall)\n"))
+                                                else:
+                                                     self.root.after(0, lambda sl=status_line: text_box.insert("end", f"✅ Works ({sl})\n"))
+                                                     working_servers.append(name)
+                                                break # Success, stop redirect loop
+                                                
+                                            elif any(code in status_line for code in ["301", "302", "307", "308"]):
+                                                loc_match = re.search(r'(?i)Location:\s*([^\r\n]+)', response)
+                                                if loc_match:
+                                                    loc = loc_match.group(1).strip()
+                                                    abs_url = urllib.parse.urljoin(f"https://{current_domain}", loc)
+                                                    new_domain = urllib.parse.urlparse(abs_url).netloc.split(':')[0]
+                                                    
+                                                    if new_domain == current_domain:
+                                                        self.root.after(0, lambda: text_box.insert("end", f"✅ Works (Internal Redirect)\n"))
+                                                        working_servers.append(name)
+                                                        break
+                                                    else:
+                                                        self.root.after(0, lambda nd=new_domain: text_box.insert("end", f"-> {nd} ... "))
+                                                        current_domain = new_domain
+                                                        redirect_count += 1
+                                                else:
+                                                    self.root.after(0, lambda: text_box.insert("end", f"⚠️ Redirected without Location header.\n"))
+                                                    break
+                                            
+                                            elif "403" in status_line or "401" in status_line:
+                                                self.root.after(0, lambda sl=status_line: text_box.insert("end", f"❌ Blocked ({sl})\n"))
+                                                break
+                                            else:
+                                                self.root.after(0, lambda sl=status_line: text_box.insert("end", f"⚠️ Reached, but: {sl}\n"))
+                                                break
+                                                
+                                except socket.timeout:
+                                    self.root.after(0, lambda: text_box.insert("end", "❌ Failed (Timeout)\n"))
+                                    break
+                                except Exception:
+                                    self.root.after(0, lambda: text_box.insert("end", "❌ Failed (Connection Error)\n"))
+                                    break
+                            else:
+                                self.root.after(0, lambda: text_box.insert("end", "❌ Domain Resolution Failed\n"))
+                                break
+                        else:
+                            self.root.after(0, lambda: text_box.insert("end", "❌ DNS Error\n"))
+                            break
+                            
+                    else:
+                        if not getattr(self, 'stop_scan_flag', False):
+                            self.root.after(0, lambda: text_box.insert("end", "❌ Failed (Too many redirects)\n"))
+                        
+                except subprocess.TimeoutExpired:
+                    self.root.after(0, lambda: text_box.insert("end", "❌ Timeout (nslookup)\n"))
+                except Exception as e:
+                    self.root.after(0, lambda err=e: text_box.insert("end", f"❌ Error: {err}\n"))
+                
+                self.root.after(0, text_box.see, "end")
+
+            if not getattr(self, 'stop_scan_flag', False):
+                self.root.after(0, lambda: text_box.insert("end", "-"*45 + "\nScan complete.\n"))
+
+        except Exception as e:
+            self.root.after(0, lambda err=e: text_box.insert("end", f"\nError: {str(err)}\n"))
+        finally:
+            self.root.after(0, lambda: scan_btn.configure(state="normal", text="Scan"))
+            self.root.after(0, lambda: stop_btn.configure(state="disabled", fg_color=self.colors['secondary_accent_gray']))
+            self.root.after(0, text_box.see, "end")
+            
+            # Update the bottom connect UI even if stopped halfway
+            if working_servers:
+                self.root.after(0, lambda: self.working_dns_combo.configure(values=working_servers, state="normal"))
+                self.root.after(0, lambda: self.working_dns_combo.set(working_servers[0]))
+                self.root.after(0, lambda: self.connect_working_btn.configure(state="normal"))
+            else:
+                self.root.after(0, lambda: self.working_dns_combo.configure(values=["No working DNS found"], state="disabled"))
+                self.root.after(0, lambda: self.working_dns_combo.set("No working DNS found"))
+                self.root.after(0, lambda: self.connect_working_btn.configure(state="disabled"))
 
 
     def run(self):
