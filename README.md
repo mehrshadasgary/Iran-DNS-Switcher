@@ -94,6 +94,7 @@ Microsoft Defender SmartScreen prevented an unrecognized app from starting...
 
 Mehrshad Asgary  
 🔗 [mehrshadasgary.ir](https://mehrshadasgary.ir)
+❤️ [حمایت مالی از پروژه](https://donofa.ir/mehrshadasgary/)
 
 ## 📜 مجوز
 
