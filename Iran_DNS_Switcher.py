@@ -1,4 +1,4 @@
-                                                    # Iran DNS Changer version 2.7
+                                                # Iran DNS Changer version 2.7  
 
 # --- Imports ---
 import customtkinter as ctk
@@ -41,7 +41,7 @@ class IranDNSSwitcher:
         self.root.resizable(False, False)
 
         # --- Version and GitHub Info for Update Check ---
-        self.current_version = "v2.6"
+        self.current_version = "v2.7"
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
         
         # --- File for storing custom DNS ---
@@ -58,6 +58,7 @@ class IranDNSSwitcher:
         self.settings_file = os.path.join(app_folder, "settings.json")
         self.startup_var = ctk.BooleanVar(value=False)
         self.tray_var = ctk.BooleanVar(value=False)
+        self.ipv6_var = ctk.BooleanVar(value=False) # New IPv6 setting
         self.tray_icon = None
         self.icon_path = None
 
@@ -145,6 +146,7 @@ class IranDNSSwitcher:
 
 
         # --- DNS Servers with Categories ---
+        # Format: [IPv4_Primary, IPv4_Secondary, IPv6_Primary, IPv6_Secondary]
         self.DEFAULT_DNS_SERVERS = {
             "Iranian": {
                 "Shecan": ["178.22.122.100",
@@ -198,28 +200,42 @@ class IranDNSSwitcher:
             },
             "Foreign": {
                 "Google": ["8.8.8.8",
-                            "8.8.4.4"],
+                            "8.8.4.4",
+                            "2001:4860:4860::8888",
+                            "2001:4860:4860::8844"],
 
                 "Cloudflare": ["1.1.1.1",
-                                "1.0.0.1"],
+                                "1.0.0.1",
+                                "2606:4700:4700::1111",
+                                "2606:4700:4700::1001"],
 
                 "OpenDNS": ["208.67.222.222",
-                             "208.67.220.220"],
+                             "208.67.220.220",
+                             "2620:119:35::35",
+                             "2620:119:53::53"],
 
                 "Comodo": ["8.26.56.26",
                             "8.20.247.20"],
 
                 "Quad9": ["9.9.9.9",
-                           "49.112.112.112"],
+                           "149.112.112.112",
+                           "2620:fe::fe",
+                           "2620:fe::9"],
 
                 "AlternateDNS": ["76.76.19.19",
-                                  "76.223.122.150"],
+                                  "76.223.122.150",
+                                  "2602:fcbc::ad",
+                                  "2602:fcbc:2::ad"],
 
                 "Control D": ["76.76.2.0",
-                               "76.76.10.0"],
+                               "76.76.10.0",
+                               "2606:1a40::",
+                               "2606:1a40:1::"],
 
                 "Yandex": ["77.88.8.8",
-                            "77.88.8.1"],
+                            "77.88.8.1",
+                            "2a02:6b8::feed:0ff",
+                            "2a02:6b8:0:1::feed:0ff"],
                             
                 "Cisco": ["208.67.222.222",
                            "208.67.222.20"],
@@ -516,6 +532,13 @@ class IranDNSSwitcher:
         
         self.settings_menu.add_checkbutton(label="Minimize to System Tray",
                                            variable=self.tray_var,
+                                           command=self.save_settings)
+                                           
+        self.settings_menu.add_separator()
+        
+        # Added IPv6 Toggle to settings
+        self.settings_menu.add_checkbutton(label="Enable IPv6 Support",
+                                           variable=self.ipv6_var,
                                            command=self.save_settings)
 
         self.settings_menubutton.bind("<Button-1>", self.show_settings_menu)
@@ -837,19 +860,17 @@ class IranDNSSwitcher:
                         elif current_category == "Foreign":
                             new_foreign_dns[name.strip()] = ips
                     except ValueError:
-                        self.log(f"Skipping malformed line in DNS list: {line}")
                         continue
 
             if new_iranian_dns or new_foreign_dns:
+                # Inject missing IPv6 for downloaded GitHub lists
+                self._inject_missing_ipv6(new_iranian_dns, "Iranian")
+                self._inject_missing_ipv6(new_foreign_dns, "Foreign")
                 self.dns_servers["Iranian"] = new_iranian_dns
                 self.dns_servers["Foreign"] = new_foreign_dns
-                
                 self.save_main_dns_list()
-                
-                self.log("Successfully fetched and updated DNS list from GitHub.")
                 self.root.after(0, self.refresh_dns_display_after_update)
             else:
-                self.log("Error: Fetched DNS list appears to be empty or in an invalid format.")
                 self.root.after(0, lambda: messagebox.showerror("Update Error", "The fetched DNS list from GitHub is empty or has an invalid format."))
                 self.root.after(0, lambda: self.status_label.configure(text="✗ Error: Invalid DNS list format", text_color=self.colors['error']))
 
@@ -932,6 +953,8 @@ class IranDNSSwitcher:
         # Iterate through all categories and their DNS servers
         for category, dns_list in self.dns_servers.items():
             for name, ips in dns_list.items():
+                if not ips or not ips[0]:
+                    continue
                 primary_ip = ips[0]
                 self.root.after(0, lambda n=name: self.status_label.configure(text=f"Pinging {n}..."))
                 latency, display_string = self.ping_dns_server(primary_ip)
@@ -1072,6 +1095,7 @@ class IranDNSSwitcher:
             interface_name = self.get_network_interface()
             if not interface_name: return []
 
+            # We use show dns which lists both IPv4 and IPv6
             cmd = f'netsh interface ip show dns name="{interface_name}"'
             result = subprocess.run(cmd, shell=True,
                                      capture_output=True,
@@ -1083,14 +1107,13 @@ class IranDNSSwitcher:
             dns_servers_found = []
             for line in result.stdout.split('\n'):
                 stripped_line = line.strip()
-                if "Statically Configured DNS Servers" in line or "DNS servers configured through DHCP" in line:
+                if "Statically Configured DNS Servers" in line or "DNS servers configured through DHCP" in line or "Statically Configured" in line:
                     continue
                 parts = stripped_line.split()
-                if len(parts) > 0 and (parts[-1].count('.') == 3):
-                     if not any(x in stripped_line.lower() for x in ['configuration for interface',
-                                                                      'dhcp enabled',
-                                                                        'register with suffix']):
-                         dns_servers_found.append(parts[-1])
+                if parts:
+                    ip_candidate = parts[-1]
+                    if self.is_valid_ip(ip_candidate) or self.is_valid_ipv6(ip_candidate):
+                         dns_servers_found.append(ip_candidate)
             return dns_servers_found
         except Exception as e:
             self.log(f"Error getting current DNS IPs: {e}")
@@ -1235,6 +1258,14 @@ class IranDNSSwitcher:
                 return True
         return False
 
+    def is_valid_ipv6(self, ip):
+        """Checks if the provided string is a valid IPv6 address."""
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+            return True
+        except socket.error:
+            return False
+
     def _add_context_menu(self, widget):
         """Adds a right-click context menu (Cut, Copy, Paste) to the given entry widget."""
         menu = tkinter.Menu(widget, tearoff=0, bg=self.colors['frame_bg'],
@@ -1267,7 +1298,7 @@ class IranDNSSwitcher:
 
         self.add_dns_window = ctk.CTkToplevel(self.root)
         self.add_dns_window.title("Manage Custom DNS")
-        self.add_dns_window.geometry("400x380")
+        self.add_dns_window.geometry("400x480") # Increased height for IPv6 inputs
         self.add_dns_window.resizable(False, False)
         self.add_dns_window.attributes("-topmost", True)
         self.add_dns_window.transient(self.root)
@@ -1300,7 +1331,7 @@ class IranDNSSwitcher:
 
         primary_entry = ctk.CTkEntry(
             dialog_frame,
-            placeholder_text="Primary DNS (e.g., 8.8.8.8)",
+            placeholder_text="Primary IPv4 (e.g., 8.8.8.8)",
             font=self.font_info_text,
             height=35
         )
@@ -1309,18 +1340,39 @@ class IranDNSSwitcher:
 
         secondary_entry = ctk.CTkEntry(
             dialog_frame,
-            placeholder_text="Secondary DNS (Optional)",
+            placeholder_text="Secondary IPv4 (Optional)",
             font=self.font_info_text,
             height=35
         )
-        secondary_entry.pack(fill='x', pady=(0,15))
+        secondary_entry.pack(fill='x', pady=(0,10))
         self._add_context_menu(secondary_entry)
+
+        # Added IPv6 Inputs
+        primary_ipv6_entry = ctk.CTkEntry(
+            dialog_frame,
+            placeholder_text="Primary IPv6 (Optional)",
+            font=self.font_info_text,
+            height=35
+        )
+        primary_ipv6_entry.pack(fill='x', pady=(0,10))
+        self._add_context_menu(primary_ipv6_entry)
+
+        secondary_ipv6_entry = ctk.CTkEntry(
+            dialog_frame,
+            placeholder_text="Secondary IPv6 (Optional)",
+            font=self.font_info_text,
+            height=35
+        )
+        secondary_ipv6_entry.pack(fill='x', pady=(0,15))
+        self._add_context_menu(secondary_ipv6_entry)
 
         save_btn = ctk.CTkButton(
             dialog_frame, text="Save DNS",
             command=lambda: self.add_custom_dns(name_entry.get(),
                                                  primary_entry.get(),
-                                                   secondary_entry.get()),
+                                                   secondary_entry.get(),
+                                                     primary_ipv6_entry.get(),
+                                                       secondary_ipv6_entry.get()),
             font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'],
             hover_color=self.colors['secondary_accent_gray_hover']
         )
@@ -1410,27 +1462,41 @@ class IranDNSSwitcher:
                 self.log(f"Import failed: {e}")
                 messagebox.showerror("Import Failed", f"Failed to import custom DNS. Ensure it's a valid JSON file.\nError: {e}", parent=self.add_dns_window)
 
-    def add_custom_dns(self, custom_name, primary_dns, secondary_dns):
+    def add_custom_dns(self, custom_name, primary_dns, secondary_dns, primary_ipv6="", secondary_ipv6=""):
         """Validates and adds the new custom DNS to the list."""
         custom_name = custom_name.strip()
         primary_dns = primary_dns.strip()
         secondary_dns = secondary_dns.strip()
+        primary_ipv6 = primary_ipv6.strip()
+        secondary_ipv6 = secondary_ipv6.strip()
 
         if not primary_dns:
             messagebox.showerror("Input Error",
-                                  "Primary DNS field cannot be empty.",
+                                  "Primary IPv4 field cannot be empty.",
                                     parent=self.add_dns_window)
             return
 
         if not self.is_valid_ip(primary_dns):
             messagebox.showerror("Invalid IP",
-                                  f"The primary DNS address '{primary_dns}' is not a valid IP address.",
+                                  f"The primary IPv4 address '{primary_dns}' is not valid.",
                                     parent=self.add_dns_window)
             return
         
         if secondary_dns and not self.is_valid_ip(secondary_dns):
             messagebox.showerror("Invalid IP",
-                                  f"The secondary DNS address '{secondary_dns}' is not a valid IP address.",
+                                  f"The secondary IPv4 address '{secondary_dns}' is not valid.",
+                                    parent=self.add_dns_window)
+            return
+            
+        if primary_ipv6 and not self.is_valid_ipv6(primary_ipv6):
+            messagebox.showerror("Invalid IP",
+                                  f"The primary IPv6 address '{primary_ipv6}' is not valid.",
+                                    parent=self.add_dns_window)
+            return
+            
+        if secondary_ipv6 and not self.is_valid_ipv6(secondary_ipv6):
+            messagebox.showerror("Invalid IP",
+                                  f"The secondary IPv6 address '{secondary_ipv6}' is not valid.",
                                     parent=self.add_dns_window)
             return
         
@@ -1443,10 +1509,10 @@ class IranDNSSwitcher:
                                       parent=self.add_dns_window)
             return
 
-        self.dns_servers["Custom"][custom_name] = [primary_dns, secondary_dns]
+        self.dns_servers["Custom"][custom_name] = [primary_dns, secondary_dns, primary_ipv6, secondary_ipv6]
         self.save_custom_dns()
         self.display_dns_for_category("Custom")
-        self.log(f"Custom DNS '{custom_name}' added with values: {primary_dns}, {secondary_dns}")
+        self.log(f"Custom DNS '{custom_name}' added with values: {primary_dns}, {secondary_dns}, {primary_ipv6}, {secondary_ipv6}")
         
         self.add_dns_window.destroy()
         messagebox.showinfo("Success",
@@ -1462,6 +1528,18 @@ class IranDNSSwitcher:
                 self.display_dns_for_category("Custom")
                 self.log(f"Custom DNS '{dns_name}' has been deleted.")
 
+    def _inject_missing_ipv6(self, dns_dict, category_name):
+        """Injects missing IPv6 addresses from DEFAULT_DNS_SERVERS into a loaded DNS dict."""
+        injected_count = 0
+        for dns_name, ips in dns_dict.items():
+            if dns_name in self.DEFAULT_DNS_SERVERS.get(category_name, {}):
+                default_ips = self.DEFAULT_DNS_SERVERS[category_name][dns_name]
+                if len(default_ips) > 2 and len(ips) <= 2:
+                    ips.extend(default_ips[2:])
+                    injected_count += 1
+        if injected_count > 0:
+            self.log(f"IPv6 inject: added missing IPv6 to {injected_count} entries in '{category_name}'.")
+
     def load_main_dns_list(self):
         """Loads the main DNS list from a local file, or uses defaults if not found."""
         self.log("Loading main DNS list...")
@@ -1472,6 +1550,9 @@ class IranDNSSwitcher:
                     if "Iranian" in loaded_dns and "Foreign" in loaded_dns:
                         self.dns_servers["Iranian"] = loaded_dns["Iranian"]
                         self.dns_servers["Foreign"] = loaded_dns["Foreign"]
+                        # Inject missing IPv6 from defaults (fixes old cached files without IPv6)
+                        self._inject_missing_ipv6(self.dns_servers["Iranian"], "Iranian")
+                        self._inject_missing_ipv6(self.dns_servers["Foreign"], "Foreign")
                         self.log(f"Successfully loaded main DNS list from {self.dns_list_file}")
                         return
             
@@ -1525,7 +1606,7 @@ class IranDNSSwitcher:
 
     def change_dns(self, category, dns_name):
         if category == "auto":
-            dns_servers_list = ["auto", "auto"]
+            dns_servers_list = ["auto"]
         else:
             dns_servers_list = self.dns_servers[category][dns_name]
         
@@ -1561,10 +1642,19 @@ class IranDNSSwitcher:
             self.root.update_idletasks()
             
             cli_encoding = 'oem'
+            
+            # Safe unpack supporting lists of length 1 to 4
+            primary_ipv4 = dns_servers_list[0] if len(dns_servers_list) > 0 else ""
+            secondary_ipv4 = dns_servers_list[1] if len(dns_servers_list) > 1 else ""
+            primary_ipv6 = dns_servers_list[2] if len(dns_servers_list) > 2 else ""
+            secondary_ipv6 = dns_servers_list[3] if len(dns_servers_list) > 3 else ""
+            
+            is_ipv6_enabled = self.ipv6_var.get()
 
-            if dns_servers_list[0] == "auto":
+            if primary_ipv4 == "auto":
+                # Clear IPv4 static and set DHCP
                 cmd_clear_static = f'netsh interface ipv4 delete dnsserver "{interface_name}" all'
-                cmd_set_dhcp = f'netsh interface ip set dns name="{interface_name}" source=dhcp'
+                cmd_set_dhcp = f'netsh interface ipv4 set dns name="{interface_name}" source=dhcp'
                 
                 self.log(f"Executing command: {cmd_clear_static}")
                 subprocess.run(cmd_clear_static,
@@ -1578,12 +1668,34 @@ class IranDNSSwitcher:
                 self.log(f"Executing command: {cmd_set_dhcp}")
                 subprocess.run(cmd_set_dhcp,
                                 shell=True, 
-                                check=True,
+                                check=False,
                                   capture_output=True,
                                     text=True,
                                       encoding=cli_encoding,
                                         errors='ignore')
+                                        
+                # Clear IPv6 static and set DHCP
+                cmd_clear_v6 = f'netsh interface ipv6 delete dnsserver "{interface_name}" all'
+                cmd_set_dhcp_v6 = f'netsh interface ipv6 set dns name="{interface_name}" source=dhcp'
                 
+                self.log(f"Executing command: {cmd_clear_v6}")
+                subprocess.run(cmd_clear_v6,
+                                shell=True,
+                                  check=False,
+                                    capture_output=True,
+                                      text=True,
+                                        encoding=cli_encoding,
+                                          errors='ignore')
+                
+                self.log(f"Executing command: {cmd_set_dhcp_v6}")
+                subprocess.run(cmd_set_dhcp_v6,
+                                shell=True, 
+                                check=False,
+                                  capture_output=True,
+                                    text=True,
+                                      encoding=cli_encoding,
+                                        errors='ignore')
+
                 self.status_label.configure(
                     text=f"✓ DNS for '{interface_name}' set to Default (DHCP)", 
                     text_color=self.colors['success']
@@ -1595,28 +1707,85 @@ class IranDNSSwitcher:
                 )
 
             else:
-                primary_dns = dns_servers_list[0]
-                secondary_dns = dns_servers_list[1] if len(dns_servers_list) > 1 and dns_servers_list[1] else ""
-
-                cmd_set_primary = f'netsh interface ip set dns name="{interface_name}" static {primary_dns}'
-                cmd_flush_dns = 'ipconfig /flushdns'
-                
+                # 1. First, clear and apply IPv4
+                cmd_clear_static = f'netsh interface ipv4 delete dnsserver "{interface_name}" all'
+                subprocess.run(cmd_clear_static,
+                                shell=True,
+                                  check=False,
+                                    capture_output=True,
+                                      text=True,
+                                        encoding=cli_encoding,
+                                          errors='ignore')
+                                          
+                cmd_set_primary = f'netsh interface ipv4 set dns name="{interface_name}" static {primary_ipv4}'
                 self.log(f"Executing command: {cmd_set_primary}")
-                subprocess.run(cmd_set_primary, shell=True, check=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
+                subprocess.run(cmd_set_primary,
+                                shell=True,
+                                 check=False,
+                                  capture_output=True,
+                                   text=True,
+                                    encoding=cli_encoding,
+                                     errors='ignore')
                 
-                if secondary_dns:
-                    cmd_add_secondary = f'netsh interface ip add dns name="{interface_name}" addr={secondary_dns} index=2'
+                if secondary_ipv4:
+                    cmd_add_secondary = f'netsh interface ipv4 add dns name="{interface_name}" addr={secondary_ipv4} index=2'
                     self.log(f"Executing command: {cmd_add_secondary}")
                     subprocess.run(cmd_add_secondary,
                                     shell=True,
-                                      check=True,
+                                      check=False,
                                         capture_output=True,
                                           text=True,
                                             encoding=cli_encoding,
                                               errors='ignore')
+                
+                # 2. Handling IPv6 with Anti-Leak
+                if is_ipv6_enabled:
+                    # Clear any old v6 first
+                    cmd_clear_v6 = f'netsh interface ipv6 delete dnsserver "{interface_name}" all'
+                    subprocess.run(cmd_clear_v6,
+                                    shell=True,
+                                     check=False,
+                                      capture_output=True,
+                                       text=True,
+                                        encoding=cli_encoding,
+                                         errors='ignore')
+                    
+                    if primary_ipv6:
+                        cmd_set_primary_v6 = f'netsh interface ipv6 set dns name="{interface_name}" static {primary_ipv6}'
+                        self.log(f"Executing command: {cmd_set_primary_v6}")
+                        subprocess.run(cmd_set_primary_v6,
+                                        shell=True,
+                                         check=False,
+                                          capture_output=True,
+                                           text=True,
+                                            encoding=cli_encoding,
+                                             errors='ignore')
+                        if secondary_ipv6:
+                            cmd_add_secondary_v6 = f'netsh interface ipv6 add dns name="{interface_name}" addr={secondary_ipv6} index=2'
+                            self.log(f"Executing command: {cmd_add_secondary_v6}")
+                            subprocess.run(cmd_add_secondary_v6,
+                                            shell=True,
+                                             check=False,
+                                              capture_output=True,
+                                               text=True,
+                                                encoding=cli_encoding,
+                                                 errors='ignore')
+                    else:
+                        # ANTI-LEAK: Set IPv6 to loopback so windows doesn't fall back to ISP's IPv6
+                        cmd_anti_leak_v6 = f'netsh interface ipv6 set dns name="{interface_name}" static ::1'
+                        self.log(f"Executing command (Anti-Leak): {cmd_anti_leak_v6}")
+                        subprocess.run(cmd_anti_leak_v6,
+                                        shell=True,
+                                         check=False,
+                                          capture_output=True,
+                                           text=True,
+                                            encoding=cli_encoding,
+                                             errors='ignore')
                 else:
-                    pass
-
+                     pass # If disabled, don't touch IPv6 at all
+                        
+                # 3. Flush the DNS cache
+                cmd_flush_dns = 'ipconfig /flushdns'
                 self.log(f"Executing command: {cmd_flush_dns}")
                 subprocess.run(cmd_flush_dns,
                                 shell=True,
@@ -1631,21 +1800,20 @@ class IranDNSSwitcher:
                     text_color=self.colors['success']
                 )
                 self.log(f"DNS for '{interface_name}' successfully changed to {dns_name}.")
-                success_message = f"DNS successfully changed to {dns_name} for interface '{interface_name}'\n\nPrimary: {primary_dns}"
-                if secondary_dns:
-                    success_message += f"\nSecondary: {secondary_dns}"
+                
+                success_message = f"DNS successfully changed to {dns_name} for interface '{interface_name}'\n\nIPv4: {primary_ipv4}"
+                if secondary_ipv4: 
+                    success_message += f", {secondary_ipv4}"
+                
+                if is_ipv6_enabled and primary_ipv6: 
+                    success_message += f"\nIPv6: {primary_ipv6}"
+                    if secondary_ipv6: 
+                        success_message += f", {secondary_ipv6}"
+                elif is_ipv6_enabled and not primary_ipv6:
+                    success_message += f"\n(IPv6 Blocked to prevent DNS Leak)"
+                    
                 messagebox.showinfo("Success", success_message)
                 
-        except subprocess.CalledProcessError as e:
-            error_details = f"Command:\n{e.cmd}\n\nReturn Code: {e.returncode}\n\nSTDOUT:\n{e.stdout}\n\nSTDERR:\n{e.stderr}"
-            full_error_message = f"A command failed to execute properly.\n\n{error_details}"
-            self.log(f"Command Execution Error: {full_error_message}")
-            messagebox.showerror("Command Execution Error",
-                                  full_error_message)
-            
-            self.status_label.configure(text="✗ Error changing DNS (command failed)",
-                                         text_color=self.colors['error'])
-            
         except Exception as e:
             self.log(f"An unexpected error occurred during DNS change: {e}")
             messagebox.showerror("Error", f"An unexpected error occurred during DNS change:\n{str(e)}")
@@ -1689,16 +1857,18 @@ class IranDNSSwitcher:
 
             dns_info = f"Current DNS Servers for '{interface_name}':\n\n"
             
-            # --- START OF CHANGE ---
-            # Regex to find all valid IPv4 addresses in the output
-            ip_pattern = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
-            
-            # Find all IPs in the entire output string
-            dns_servers_found = re.findall(ip_pattern, result.stdout)
-            # --- END OF CHANGE ---
+            dns_servers_found = []
+            for line in result.stdout.split('\n'):
+                line = line.strip()
+                if "Statically Configured" in line or "configured through DHCP" in line:
+                    continue
+                parts = line.split()
+                if parts:
+                    ip_candidate = parts[-1]
+                    if self.is_valid_ip(ip_candidate) or self.is_valid_ipv6(ip_candidate):
+                         dns_servers_found.append(ip_candidate)
 
             if dns_servers_found:
-                # Join all found DNS servers with a new line
                 dns_info += "\n".join(dns_servers_found)
             elif 'dhcp' in result.stdout.lower():
                 dns_info += "DNS servers configured automatically through DHCP."
@@ -1740,6 +1910,7 @@ class IranDNSSwitcher:
                     settings = json.load(f)
                     self.startup_var.set(settings.get("run_on_startup", False))
                     self.tray_var.set(settings.get("minimize_to_tray", False))
+                    self.ipv6_var.set(settings.get("enable_ipv6", False))
                     self.log("Settings loaded successfully.")
             else:
                 self.log("Settings file not found, using default settings (False).")
@@ -1752,7 +1923,8 @@ class IranDNSSwitcher:
         try:
             settings = {
                 "run_on_startup": self.startup_var.get(),
-                "minimize_to_tray": self.tray_var.get()
+                "minimize_to_tray": self.tray_var.get(),
+                "enable_ipv6": self.ipv6_var.get()
             }
             with open(self.settings_file, 'w') as f:
                 json.dump(settings, f, indent=4)
@@ -1896,7 +2068,9 @@ class IranDNSSwitcher:
             self.tray_icon = None  
         self.root.after(0, self.root.destroy)
 
-    # URL SCANNER (SANCTION BYPASS)
+    # ==========================================
+    # --- NEW FEATURE: URL SCANNER (SANCTION BYPASS) ---
+    # ==========================================
     
     def show_url_scanner_window(self):
         if hasattr(self, 'url_scanner_window') and self.url_scanner_window.winfo_exists():
@@ -1906,6 +2080,7 @@ class IranDNSSwitcher:
         self.url_scanner_window = ctk.CTkToplevel(self.root)
         self.url_scanner_window.title("Sanction Bypass Scanner")
         
+        # Center the new window relative to the main window
         window_width = 500
         window_height = 600
         self.root.update_idletasks()
@@ -1922,10 +2097,18 @@ class IranDNSSwitcher:
             except Exception:
                 pass
 
-        dialog_frame = ctk.CTkFrame(self.url_scanner_window, fg_color=self.colors['frame_bg'])
+        dialog_frame = ctk.CTkFrame(
+            self.url_scanner_window,
+            fg_color=self.colors['frame_bg']
+        )
         dialog_frame.pack(expand=True, fill="both", padx=15, pady=15)
 
-        title_label = ctk.CTkLabel(dialog_frame, text="Find Working DNS for Restricted Websites", font=self.font_section_title, text_color=self.colors['text_primary'])
+        title_label = ctk.CTkLabel(
+            dialog_frame,
+            text="Find Working DNS for Restricted Websites",
+            font=self.font_section_title,
+            text_color=self.colors['text_primary']
+        )
         title_label.pack(pady=(10, 15))
 
         self.scan_iranian_var = ctk.BooleanVar(value=True)
@@ -1933,31 +2116,82 @@ class IranDNSSwitcher:
         self.scan_custom_var = ctk.BooleanVar(value=False)
         self.stop_scan_flag = False
 
-        cb_frame = ctk.CTkFrame(dialog_frame, fg_color="transparent")
+        cb_frame = ctk.CTkFrame(
+            dialog_frame,
+            fg_color="transparent"
+        )
         cb_frame.pack(fill="x", padx=5, pady=(0, 10))
 
-        ctk.CTkCheckBox(cb_frame, text="Iranian DNS", variable=self.scan_iranian_var, font=self.font_info_text).pack(side="left", padx=(0, 10))
-        ctk.CTkCheckBox(cb_frame, text="Foreign DNS", variable=self.scan_foreign_var, font=self.font_info_text).pack(side="left", padx=(0, 10))
-        ctk.CTkCheckBox(cb_frame, text="Custom DNS", variable=self.scan_custom_var, font=self.font_info_text).pack(side="left")
+        ctk.CTkCheckBox(
+            cb_frame,
+            text="Iranian DNS",
+            variable=self.scan_iranian_var,
+            font=self.font_info_text
+        ).pack(side="left", padx=(0, 10))
+        
+        ctk.CTkCheckBox(
+            cb_frame,
+            text="Foreign DNS",
+            variable=self.scan_foreign_var,
+            font=self.font_info_text
+        ).pack(side="left", padx=(0, 10))
+        
+        ctk.CTkCheckBox(
+            cb_frame,
+            text="Custom DNS",
+            variable=self.scan_custom_var,
+            font=self.font_info_text
+        ).pack(side="left")
 
-        input_frame = ctk.CTkFrame(dialog_frame, fg_color="transparent")
+        input_frame = ctk.CTkFrame(
+            dialog_frame,
+            fg_color="transparent"
+        )
         input_frame.pack(fill="x", padx=5, pady=5)
 
-        url_entry = ctk.CTkEntry(input_frame, placeholder_text="Website URL (e.g., spotify.com)", font=self.font_info_text, height=35)
+        url_entry = ctk.CTkEntry(
+            input_frame,
+            placeholder_text="Website URL (e.g., spotify.com)",
+            font=self.font_info_text,
+            height=35
+        )
         url_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
         self._add_context_menu(url_entry)
 
-        # Added Stop Button
-        stop_btn = ctk.CTkButton(input_frame, text="Stop", font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'], width=70, height=35, state="disabled")
+        stop_btn = ctk.CTkButton(
+            input_frame,
+            text="Stop",
+            font=self.font_button_main,
+            fg_color=self.colors['secondary_accent_gray'],
+            hover_color=self.colors['secondary_accent_gray_hover'],
+            width=70,
+            height=35,
+            state="disabled"
+        )
         stop_btn.pack(side="right")
         
-        scan_btn = ctk.CTkButton(input_frame, text="Scan", font=self.font_button_main, fg_color=self.colors['primary_accent_main_red'], hover_color=self.colors['primary_accent_hover_red'], width=70, height=35)
+        scan_btn = ctk.CTkButton(
+            input_frame,
+            text="Scan",
+            font=self.font_button_main,
+            fg_color=self.colors['primary_accent_main_red'],
+            hover_color=self.colors['primary_accent_hover_red'],
+            width=70,
+            height=35
+        )
         scan_btn.pack(side="right", padx=(5, 5))
 
-        result_textbox = ctk.CTkTextbox(dialog_frame, wrap="word", font=self.font_info_text)
+        result_textbox = ctk.CTkTextbox(
+            dialog_frame,
+            wrap="word",
+            font=self.font_info_text
+        )
         result_textbox.pack(expand=True, fill="both", padx=5, pady=(10, 10))
 
-        action_frame = ctk.CTkFrame(dialog_frame, fg_color="transparent")
+        action_frame = ctk.CTkFrame(
+            dialog_frame,
+            fg_color="transparent"
+        )
         action_frame.pack(fill="x", padx=5, pady=(0, 5))
         
         self.working_dns_combo = ctk.CTkOptionMenu(
@@ -2010,7 +2244,11 @@ class IranDNSSwitcher:
     def start_url_scan(self, url, text_box, scan_btn, stop_btn):
         url = url.strip()
         if not url:
-            messagebox.showwarning("Input Error", "Please enter a valid URL.", parent=self.url_scanner_window)
+            messagebox.showwarning(
+                "Input Error",
+                "Please enter a valid URL.",
+                parent=self.url_scanner_window
+            )
             return
 
         servers_to_test = {}
@@ -2022,7 +2260,11 @@ class IranDNSSwitcher:
             servers_to_test.update(self.dns_servers.get("Custom", {}))
 
         if not servers_to_test:
-            messagebox.showwarning("Selection Error", "Please select at least one DNS category to scan.", parent=self.url_scanner_window)
+            messagebox.showwarning(
+                "Selection Error",
+                "Please select at least one DNS category to scan.",
+                parent=self.url_scanner_window
+            )
             return
 
         self.stop_scan_flag = False
@@ -2035,7 +2277,11 @@ class IranDNSSwitcher:
         self.working_dns_combo.set("Scanning...")
         self.connect_working_btn.configure(state="disabled")
         
-        scan_thread = threading.Thread(target=self._scan_url_threaded, args=(url, text_box, scan_btn, stop_btn, servers_to_test), daemon=True)
+        scan_thread = threading.Thread(
+            target=self._scan_url_threaded,
+            args=(url, text_box, scan_btn, stop_btn, servers_to_test),
+            daemon=True
+        )
         scan_thread.start()
 
     def _scan_url_threaded(self, url, text_box, scan_btn, stop_btn, servers_to_test):
@@ -2048,7 +2294,7 @@ class IranDNSSwitcher:
             if not initial_domain:
                 initial_domain = url
             
-            initial_domain = initial_domain.split(':')[0] # Remove port if present
+            initial_domain = initial_domain.split(':')[0]
 
             self.root.after(0, lambda: text_box.insert("end", f"Target Domain: {initial_domain}\n"))
             self.root.after(0, lambda: text_box.insert("end", "-"*45 + "\n"))
@@ -2081,7 +2327,13 @@ class IranDNSSwitcher:
                             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                             startupinfo.wShowWindow = subprocess.SW_HIDE
 
-                        res = subprocess.run(cmd, capture_output=True, text=True, startupinfo=startupinfo, timeout=4)
+                        res = subprocess.run(
+                            cmd,
+                            capture_output=True,
+                            text=True,
+                            startupinfo=startupinfo,
+                            timeout=4
+                        )
 
                         if res.returncode == 0:
                             ip_pattern = r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"
@@ -2100,7 +2352,6 @@ class IranDNSSwitcher:
                                     
                                     with socket.create_connection((test_ip, 443), timeout=4) as sock:
                                         with context.wrap_socket(sock, server_hostname=current_domain) as ssock:
-                                            # Send a more complete HTTP GET request mimicking a real browser
                                             request = (
                                                 f"GET / HTTP/1.1\r\n"
                                                 f"Host: {current_domain}\r\n"
@@ -2117,20 +2368,19 @@ class IranDNSSwitcher:
                                                 if not chunk:
                                                     break
                                                 responseBytes += chunk
-                                                if len(responseBytes) > 8192: # limit size to avoid hanging
+                                                if len(responseBytes) > 8192: 
                                                     break
                                                     
                                             response = responseBytes.decode(errors='ignore')
                                             status_line = response.split('\r\n')[0] if '\r\n' in response else response
                                             
                                             if any(code in status_line for code in ["200", "201", "202"]):
-                                                # Extra check for sneaky blocks hidden in 200 OK responses
                                                 if "Access Denied" in response or "403 Forbidden" in response:
                                                      self.root.after(0, lambda: text_box.insert("end", f"❌ Blocked (Access Denied by Firewall)\n"))
                                                 else:
                                                      self.root.after(0, lambda sl=status_line: text_box.insert("end", f"✅ Works ({sl})\n"))
                                                      working_servers.append(name)
-                                                break # Success, stop redirect loop
+                                                break 
                                                 
                                             elif any(code in status_line for code in ["301", "302", "307", "308"]):
                                                 loc_match = re.search(r'(?i)Location:\s*([^\r\n]+)', response)
@@ -2189,16 +2439,24 @@ class IranDNSSwitcher:
             self.root.after(0, lambda err=e: text_box.insert("end", f"\nError: {str(err)}\n"))
         finally:
             self.root.after(0, lambda: scan_btn.configure(state="normal", text="Scan"))
-            self.root.after(0, lambda: stop_btn.configure(state="disabled", fg_color=self.colors['secondary_accent_gray']))
+            self.root.after(0, lambda: stop_btn.configure(
+                state="disabled",
+                fg_color=self.colors['secondary_accent_gray']
+            ))
             self.root.after(0, text_box.see, "end")
             
-            # Update the bottom connect UI even if stopped halfway
             if working_servers:
-                self.root.after(0, lambda: self.working_dns_combo.configure(values=working_servers, state="normal"))
+                self.root.after(0, lambda: self.working_dns_combo.configure(
+                    values=working_servers,
+                    state="normal"
+                ))
                 self.root.after(0, lambda: self.working_dns_combo.set(working_servers[0]))
                 self.root.after(0, lambda: self.connect_working_btn.configure(state="normal"))
             else:
-                self.root.after(0, lambda: self.working_dns_combo.configure(values=["No working DNS found"], state="disabled"))
+                self.root.after(0, lambda: self.working_dns_combo.configure(
+                    values=["No working DNS found"],
+                    state="disabled"
+                ))
                 self.root.after(0, lambda: self.working_dns_combo.set("No working DNS found"))
                 self.root.after(0, lambda: self.connect_working_btn.configure(state="disabled"))
 
@@ -2209,11 +2467,11 @@ class IranDNSSwitcher:
 
 if __name__ == "__main__":
     if os.name != 'nt':
-        # error and exit.
-        messagebox.showerror("Compatibility Error",
-                              "This application is designed for Windows only.")
+        messagebox.showerror(
+            "Compatibility Error",
+            "This application is designed for Windows only."
+        )
         sys.exit(1)
     
-    # Run
     app = IranDNSSwitcher()
     app.run()
