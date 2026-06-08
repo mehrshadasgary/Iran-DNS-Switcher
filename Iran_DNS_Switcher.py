@@ -1,4 +1,4 @@
-                                                # Iran DNS Changer version 2.7  
+                                                # Iran DNS Changer version 2.7
 
 # --- Imports ---
 import customtkinter as ctk
@@ -59,6 +59,7 @@ class IranDNSSwitcher:
         self.startup_var = ctk.BooleanVar(value=False)
         self.tray_var = ctk.BooleanVar(value=False)
         self.ipv6_var = ctk.BooleanVar(value=False) # New IPv6 setting
+        self.doh_var = ctk.BooleanVar(value=False) # DoH Setting
         self.tray_icon = None
         self.icon_path = None
 
@@ -140,13 +141,37 @@ class IranDNSSwitcher:
                                                  size=12,
                                                    weight="bold")
         
-        self.font_delete_button = ctk.CTkFont(family="Segoe UI",
-                                               size=10,
-                                                 weight="bold")
+        self.font_delete_button = ctk.CTkFont(family="Segoe UI", size=10, weight="bold")
 
+        # --- Known DoH Templates ---
+        self.KNOWN_DOH = {
+            "8.8.8.8": "https://dns.google/dns-query",
+            "8.8.4.4": "https://dns.google/dns-query",
+            "2001:4860:4860::8888": "https://dns.google/dns-query",
+            "2001:4860:4860::8844": "https://dns.google/dns-query",
+            "1.1.1.1": "https://cloudflare-dns.com/dns-query",
+            "1.0.0.1": "https://cloudflare-dns.com/dns-query",
+            "2606:4700:4700::1111": "https://cloudflare-dns.com/dns-query",
+            "2606:4700:4700::1001": "https://cloudflare-dns.com/dns-query",
+            "208.67.222.222": "https://doh.opendns.com/dns-query",
+            "208.67.220.220": "https://doh.opendns.com/dns-query",
+            "2620:119:35::35": "https://doh.opendns.com/dns-query",
+            "2620:119:53::53": "https://doh.opendns.com/dns-query",
+            "9.9.9.9": "https://dns.quad9.net/dns-query",
+            "149.112.112.112": "https://dns.quad9.net/dns-query",
+            "2620:fe::fe": "https://dns.quad9.net/dns-query",
+            "2620:fe::9": "https://dns.quad9.net/dns-query",
+            "76.76.2.0": "https://freedns.controld.com/p0",
+            "76.76.10.0": "https://freedns.controld.com/p0",
+            "2606:1a40::": "https://freedns.controld.com/p0",
+            "2606:1a40:1::": "https://freedns.controld.com/p0",
+            "10.202.10.202": "https://dns.403.online/dns-query",
+            "10.202.10.102": "https://dns.403.online/dns-query",
+            "78.157.42.100": "https://dns.electro.team/dns-query",
+            "78.157.42.101": "https://dns.electro.team/dns-query",
+        }
 
         # --- DNS Servers with Categories ---
-        # Format: [IPv4_Primary, IPv4_Secondary, IPv6_Primary, IPv6_Secondary]
         self.DEFAULT_DNS_SERVERS = {
             "Iranian": {
                 "Shecan": ["178.22.122.100",
@@ -539,6 +564,10 @@ class IranDNSSwitcher:
         # Added IPv6 Toggle to settings
         self.settings_menu.add_checkbutton(label="Enable IPv6 Support",
                                            variable=self.ipv6_var,
+                                           command=self.save_settings)
+
+        self.settings_menu.add_checkbutton(label="Enable DoH (Windows 11+)",
+                                           variable=self.doh_var,
                                            command=self.save_settings)
 
         self.settings_menubutton.bind("<Button-1>", self.show_settings_menu)
@@ -1095,25 +1124,29 @@ class IranDNSSwitcher:
             interface_name = self.get_network_interface()
             if not interface_name: return []
 
-            # We use show dns which lists both IPv4 and IPv6
-            cmd = f'netsh interface ip show dns name="{interface_name}"'
-            result = subprocess.run(cmd, shell=True,
-                                     capture_output=True,
-                                       text=True,
-                                         encoding='oem',
-                                           errors='ignore',
-                                             timeout=5)
-            
             dns_servers_found = []
-            for line in result.stdout.split('\n'):
-                stripped_line = line.strip()
-                if "Statically Configured DNS Servers" in line or "DNS servers configured through DHCP" in line or "Statically Configured" in line:
-                    continue
-                parts = stripped_line.split()
+            cli_encoding = 'oem'
+            
+            # Check IPv4
+            cmd_v4 = f'netsh interface ipv4 show dns name="{interface_name}"'
+            res_v4 = subprocess.run(cmd_v4, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=5)
+            for line in res_v4.stdout.split('\n'):
+                parts = line.split()
                 if parts:
-                    ip_candidate = parts[-1]
-                    if self.is_valid_ip(ip_candidate) or self.is_valid_ipv6(ip_candidate):
-                         dns_servers_found.append(ip_candidate)
+                    ip_cand = parts[-1]
+                    if self.is_valid_ip(ip_cand) and ip_cand not in dns_servers_found:
+                        dns_servers_found.append(ip_cand)
+
+            # Check IPv6
+            cmd_v6 = f'netsh interface ipv6 show dns name="{interface_name}"'
+            res_v6 = subprocess.run(cmd_v6, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=5)
+            for line in res_v6.stdout.split('\n'):
+                parts = line.split()
+                if parts:
+                    ip_cand = parts[-1]
+                    if self.is_valid_ipv6(ip_cand) and ip_cand not in dns_servers_found:
+                        dns_servers_found.append(ip_cand)
+
             return dns_servers_found
         except Exception as e:
             self.log(f"Error getting current DNS IPs: {e}")
@@ -1783,8 +1816,20 @@ class IranDNSSwitcher:
                                              errors='ignore')
                 else:
                      pass # If disabled, don't touch IPv6 at all
-                        
-                # 3. Flush the DNS cache
+                     
+                # 3. DoH Handling
+                if self.doh_var.get():
+                    for ip in [primary_ipv4, secondary_ipv4, primary_ipv6, secondary_ipv6]:
+                        if ip and ip != "auto" and ip != "::1":
+                            subprocess.run(f'netsh dns delete encryption server={ip}', shell=True, capture_output=True, errors='ignore')
+                            template = self.KNOWN_DOH.get(ip)
+                            if template:
+                                doh_cmd = f'netsh dns add encryption server={ip} dohtemplate="{template}" autoupgrade=yes udpfallback=no'
+                            else:
+                                doh_cmd = f'netsh dns add encryption server={ip} autoupgrade=yes udpfallback=yes'
+                            subprocess.run(doh_cmd, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
+
+                # 4. Flush the DNS cache
                 cmd_flush_dns = 'ipconfig /flushdns'
                 self.log(f"Executing command: {cmd_flush_dns}")
                 subprocess.run(cmd_flush_dns,
@@ -1811,6 +1856,9 @@ class IranDNSSwitcher:
                         success_message += f", {secondary_ipv6}"
                 elif is_ipv6_enabled and not primary_ipv6:
                     success_message += f"\n(IPv6 Blocked to prevent DNS Leak)"
+                
+                if self.doh_var.get():
+                    success_message += f"\n\n🔒 DoH Enforced (Encrypted Connection)"
                     
                 messagebox.showinfo("Success", success_message)
                 
@@ -1826,58 +1874,79 @@ class IranDNSSwitcher:
             if not interface_name:
                 return
 
-            cmd = f'netsh interface ip show dns name="{interface_name}"'
-            self.log(f"Executing command: {cmd}")
             cli_encoding = 'oem'
+            ipv4_servers = []
+            ipv6_servers = []
+
+            # CMD 1: Check standard DNS IPv4
+            cmd_v4 = f'netsh interface ipv4 show dns name="{interface_name}"'
+            self.log(f"Executing command: {cmd_v4}")
             try:
-                result = subprocess.run(
-                    cmd,
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    encoding=cli_encoding,
-                    errors='ignore',
-                    timeout=5
-                )
-            except UnicodeDecodeError:
-                # Fallback encoding if 'oem' fails
-                result = subprocess.run(
-                    cmd,
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    encoding='latin-1',
-                    errors='ignore',
-                    timeout=5
-                )
+                res_v4 = subprocess.run(cmd_v4, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=5)
+                for line in res_v4.stdout.split('\n'):
+                    parts = line.split()
+                    if parts:
+                        ip_candidate = parts[-1]
+                        if self.is_valid_ip(ip_candidate) and ip_candidate not in ipv4_servers:
+                            ipv4_servers.append(ip_candidate)
             except subprocess.TimeoutExpired:
-                self.log(f"Command to show DNS for '{interface_name}' timed out.")
-                messagebox.showerror("Timeout", f"Command to show DNS for '{interface_name}' timed out.")
-                return
+                self.log(f"Command to show IPv4 DNS timed out.")
+
+            # CMD 2: Check standard DNS IPv6
+            cmd_v6 = f'netsh interface ipv6 show dns name="{interface_name}"'
+            self.log(f"Executing command: {cmd_v6}")
+            try:
+                res_v6 = subprocess.run(cmd_v6, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=5)
+                for line in res_v6.stdout.split('\n'):
+                    parts = line.split()
+                    if parts:
+                        ip_candidate = parts[-1]
+                        if self.is_valid_ipv6(ip_candidate) and ip_candidate not in ipv6_servers:
+                            ipv6_servers.append(ip_candidate)
+            except subprocess.TimeoutExpired:
+                self.log(f"Command to show IPv6 DNS timed out.")
+
+            # CMD 3: Check DoH Status
+            doh_ips = []
+            if self.doh_var.get() and (ipv4_servers or ipv6_servers):
+                cmd_doh = 'netsh dns show encryption'
+                self.log(f"Executing command to check DoH: {cmd_doh}")
+                try:
+                    res_doh = subprocess.run(cmd_doh, shell=True, capture_output=True, text=True, encoding=cli_encoding, errors='ignore', timeout=5)
+                    for ip in ipv4_servers + ipv6_servers:
+                        if re.search(r'\b' + re.escape(ip) + r'\b', res_doh.stdout):
+                            doh_ips.append(ip)
+                except Exception as e:
+                    self.log(f"Failed to check DoH status: {e}")
 
             dns_info = f"Current DNS Servers for '{interface_name}':\n\n"
-            
-            dns_servers_found = []
-            for line in result.stdout.split('\n'):
-                line = line.strip()
-                if "Statically Configured" in line or "configured through DHCP" in line:
-                    continue
-                parts = line.split()
-                if parts:
-                    ip_candidate = parts[-1]
-                    if self.is_valid_ip(ip_candidate) or self.is_valid_ipv6(ip_candidate):
-                         dns_servers_found.append(ip_candidate)
 
-            if dns_servers_found:
-                dns_info += "\n".join(dns_servers_found)
-            elif 'dhcp' in result.stdout.lower():
-                dns_info += "DNS servers configured automatically through DHCP."
-            else:
-                dns_info += "No static DNS servers specified."
-            
-            self.log(f"Showing current DNS info: {dns_info.replace(chr(10), ' ')}")
-            messagebox.showinfo("Current DNS", dns_info)
-            
+            if ipv4_servers:
+                dns_info += "IPv4 Servers:\n"
+                for i, ip in enumerate(ipv4_servers):
+                    label = "Primary" if i == 0 else "Secondary" if i == 1 else f"DNS {i+1}"
+                    doh_mark = " 🔒 (DoH)" if ip in doh_ips else ""
+                    dns_info += f"  • {label}: {ip}{doh_mark}\n"
+                dns_info += "\n"
+
+            if ipv6_servers:
+                dns_info += "IPv6 Servers:\n"
+                for i, ip in enumerate(ipv6_servers):
+                    label = "Primary" if i == 0 else "Secondary" if i == 1 else f"DNS {i+1}"
+                    doh_mark = " 🔒 (DoH)" if ip in doh_ips else ""
+                    dns_info += f"  • {label}: {ip}{doh_mark}\n"
+                dns_info += "\n"
+
+            if not ipv4_servers and not ipv6_servers:
+                dns_info += "DNS servers configured automatically through DHCP or no static DNS specified.\n\n"
+
+            if doh_ips:
+                 dns_info += "-" * 30 + "\n"
+                 dns_info += "🔒 DoH Status: Active (Encrypted HTTPS connection)\n"
+
+            self.log("Showing current DNS info.")
+            messagebox.showinfo("Current DNS Status", dns_info)
+
         except Exception as e:
             self.log(f"Failed to get DNS information: {e}")
             messagebox.showerror("Error", f"Failed to get DNS information:\n{str(e)}")
@@ -1911,6 +1980,7 @@ class IranDNSSwitcher:
                     self.startup_var.set(settings.get("run_on_startup", False))
                     self.tray_var.set(settings.get("minimize_to_tray", False))
                     self.ipv6_var.set(settings.get("enable_ipv6", False))
+                    self.doh_var.set(settings.get("enable_doh", False))
                     self.log("Settings loaded successfully.")
             else:
                 self.log("Settings file not found, using default settings (False).")
@@ -1924,7 +1994,8 @@ class IranDNSSwitcher:
             settings = {
                 "run_on_startup": self.startup_var.get(),
                 "minimize_to_tray": self.tray_var.get(),
-                "enable_ipv6": self.ipv6_var.get()
+                "enable_ipv6": self.ipv6_var.get(),
+                "enable_doh": self.doh_var.get()
             }
             with open(self.settings_file, 'w') as f:
                 json.dump(settings, f, indent=4)
@@ -2466,12 +2537,37 @@ class IranDNSSwitcher:
         self.log("Application closing.")
 
 if __name__ == "__main__":
+    import tkinter as tk
+    
     if os.name != 'nt':
         messagebox.showerror(
             "Compatibility Error",
             "This application is designed for Windows only."
         )
         sys.exit(1)
+
+    #  SINGLE INSTANCE CHECK (MUTEX)
+
+    mutex_name = "Global\\IranDNSSwitcher_MehrshadAsgary_Mutex"
+    mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+    last_error = ctypes.windll.kernel32.GetLastError()
+    ERROR_ALREADY_EXISTS = 183
+
+    if last_error == ERROR_ALREADY_EXISTS:
+        root = tk.Tk()
+        root.withdraw()
+        
+        hwnd = ctypes.windll.user32.FindWindowW(None, "Iran DNS Switcher")
+        if hwnd:
+            ctypes.windll.user32.ShowWindow(hwnd, 9)
+            ctypes.windll.user32.SetForegroundWindow(hwnd)
+            
+        messagebox.showwarning(
+            "Application Already Running", 
+            "Iran DNS Switcher is already open!\n\nPlease check if it is minimized or running in the System Tray (near the Windows clock).", 
+            parent=root
+        )
+        sys.exit(0)
     
     app = IranDNSSwitcher()
     app.run()
