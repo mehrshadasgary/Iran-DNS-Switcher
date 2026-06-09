@@ -32,7 +32,7 @@ class IranDNSSwitcher:
         self.log("Application started")
 
         # --- Theme and Appearance ---
-        ctk.set_appearance_mode("dark")  
+        ctk.set_appearance_mode("Dark")  
         ctk.set_default_color_theme("blue") 
 
         self.root = ctk.CTk()
@@ -60,6 +60,7 @@ class IranDNSSwitcher:
         self.tray_var = ctk.BooleanVar(value=False)
         self.ipv6_var = ctk.BooleanVar(value=False) # New IPv6 setting
         self.doh_var = ctk.BooleanVar(value=False) # DoH Setting
+        self.theme_var = ctk.StringVar(value="Dark") # --- New Theme Setting ---
         self.tray_icon = None
         self.icon_path = None
 
@@ -82,29 +83,30 @@ class IranDNSSwitcher:
             self.log(f"Error setting iconbitmap: {e}. This might happen on non-Windows systems or if the .ico file is invalid.")
 
         # --- Color ---
+        # Updated to (Light, Dark) tuples so Light theme works properly without breaking the hardcoded colors
         self.colors = {
-            'app_bg': '#242424',
-            'frame_bg': '#2E2E2E',
-            'menu_bar_bg': '#3A3A3A',
+            'app_bg': ('#EBEBEB', '#242424'),
+            'frame_bg': ('#DBDBDB', '#2E2E2E'),
+            'menu_bar_bg': ('#D3D3D3', '#3A3A3A'),
             
-            'primary_accent_main_red': '#D32F2F',
-            'primary_accent_hover_red': '#E57373',
-            'primary_accent_pressed_red': '#B71C1C',
+            'primary_accent_main_red': ('#D32F2F', '#D32F2F'),
+            'primary_accent_hover_red': ('#E57373', '#E57373'),
+            'primary_accent_pressed_red': ('#B71C1C', '#B71C1C'),
 
-            'secondary_accent_gray': '#757575',
-            'secondary_accent_gray_hover': '#9E9E9E',
+            'secondary_accent_gray': ('#A0A0A0', '#757575'),
+            'secondary_accent_gray_hover': ('#808080', '#9E9E9E'),
             
-            'text_primary': '#F5F5F5',      
-            'text_secondary': '#BDBDBD',
+            'text_primary': ('#111111', '#F5F5F5'),      
+            'text_secondary': ('#444444', '#BDBDBD'),
             
-            'success': '#4CAF50',
-            'error': '#FF5252',
-            'warning': '#FFC107',
+            'success': ('#2E7D32', '#4CAF50'),
+            'error': ('#D32F2F', '#FF5252'),
+            'warning': ('#F57C00', '#FFC107'),
             
-            "dns_foreign_purple": "#8E44AD",
-            "dns_auto": "#757575",
-            "custom_dns_blue": "#2980B9",
-            "custom_dns_blue_hover": "#3498DB",
+            "dns_foreign_purple": ('#8E44AD', '#8E44AD'),
+            "dns_auto": ('#757575', '#757575'),
+            "custom_dns_blue": ('#2980B9', '#2980B9'),
+            "custom_dns_blue_hover": ('#3498DB', '#3498DB'),
         }
 
         # --- Fonts ---
@@ -514,6 +516,7 @@ class IranDNSSwitcher:
             self.menu_bar_frame, text="Network",
             font=self.font_button_main,
             fg_color="transparent",
+            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
             hover_color=self.colors['secondary_accent_gray'],
             width=80,
             corner_radius=0,
@@ -526,6 +529,7 @@ class IranDNSSwitcher:
             self.menu_bar_frame, text="URL Scanner",
             font=self.font_button_main,
             fg_color="transparent",
+            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
             hover_color=self.colors['secondary_accent_gray'],
             width=100,
             corner_radius=0,
@@ -538,17 +542,18 @@ class IranDNSSwitcher:
             self.menu_bar_frame, text="Settings",
             font=self.font_button_main,
             fg_color="transparent",
+            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
             hover_color=self.colors['secondary_accent_gray'],
             width=80, corner_radius=0
         )
         self.settings_menubutton.pack(side="left")
 
-        # Standard Tkinter Menu for Dropdown
+        # Standard Tkinter Menu for Dropdown (Using [1] to keep the native menu styled dark without crashing in light mode)
         self.settings_menu = tkinter.Menu(self.menu_bar_frame, tearoff=0,
-                                           background=self.colors['frame_bg'],
-                                           foreground=self.colors['text_primary'],
-                                           activebackground=self.colors['secondary_accent_gray'],
-                                           activeforeground=self.colors['text_primary'],
+                                           background=self.colors['frame_bg'][1],
+                                           foreground=self.colors['text_primary'][1],
+                                           activebackground=self.colors['secondary_accent_gray'][1],
+                                           activeforeground=self.colors['text_primary'][1],
                                            bd=1, relief="solid")
         
         self.settings_menu.add_checkbutton(label="Run on Windows Startup",
@@ -570,6 +575,21 @@ class IranDNSSwitcher:
                                            variable=self.doh_var,
                                            command=self.save_settings)
 
+        self.settings_menu.add_separator()
+        
+        # --- Theme Menu ---
+        theme_menu = tkinter.Menu(self.settings_menu, tearoff=0,
+                                   background=self.colors['frame_bg'][1],
+                                   foreground=self.colors['text_primary'][1],
+                                   activebackground=self.colors['secondary_accent_gray'][1],
+                                   activeforeground=self.colors['text_primary'][1],
+                                   bd=1, relief="solid")
+        
+        theme_menu.add_radiobutton(label="Dark", variable=self.theme_var, value="Dark", command=self.change_theme)
+        theme_menu.add_radiobutton(label="Light", variable=self.theme_var, value="Light", command=self.change_theme)
+        
+        self.settings_menu.add_cascade(label="Theme", menu=theme_menu)
+
         self.settings_menubutton.bind("<Button-1>", self.show_settings_menu)
 
         # Log Button
@@ -577,6 +597,7 @@ class IranDNSSwitcher:
             self.menu_bar_frame, text="Log",
             font=self.font_button_main,
             fg_color="transparent",
+            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
             hover_color=self.colors['secondary_accent_gray'],
             width=50,
             corner_radius=0,
@@ -589,6 +610,7 @@ class IranDNSSwitcher:
             self.menu_bar_frame, text="Update DNS List",
             font=self.font_button_main,
             fg_color="transparent",
+            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
             hover_color=self.colors['secondary_accent_gray'],
             width=120,
             corner_radius=0,
@@ -603,6 +625,13 @@ class IranDNSSwitcher:
         x = self.settings_menubutton.winfo_rootx()
         y = self.settings_menubutton.winfo_rooty() + self.settings_menubutton.winfo_height()
         self.settings_menu.tk_popup(x, y)
+
+    def change_theme(self):
+        """Handles theme switching."""
+        theme = self.theme_var.get()
+        ctk.set_appearance_mode(theme)
+        self.save_settings()
+        self.log(f"Theme changed to: {theme}")
 
     def toggle_network_menu(self):
         """Creates and shows or hides the network dropdown menu."""
@@ -921,8 +950,8 @@ class IranDNSSwitcher:
     def show_delete_menu(self, event, dns_name):
         """Creates and displays a right-click context menu to delete a custom DNS."""
 
-        menu = tkinter.Menu(self.root, tearoff=0, bg=self.colors['frame_bg'],
-                             fg=self.colors['text_primary'])
+        menu = tkinter.Menu(self.root, tearoff=0, bg=self.colors['frame_bg'][1],
+                             fg=self.colors['text_primary'][1])
         
         menu.add_command(label=f"Delete '{dns_name}'",
                           command=lambda: self.delete_custom_dns(dns_name))
@@ -1173,6 +1202,11 @@ class IranDNSSwitcher:
         self.root.after(0, lambda: self.status_label.configure(text=status_text, text_color=status_color))
 
     def lighten_hex_color(self, hex_color, factor=0.2):
+        # Support logic so CTk tuples dont crash string methods
+        if isinstance(hex_color, tuple):
+            mode = ctk.get_appearance_mode()
+            hex_color = hex_color[1] if mode == "Dark" else hex_color[0]
+            
         if not hex_color.startswith('#'): return hex_color
         
         hex_color = hex_color.lstrip('#')
@@ -1281,7 +1315,6 @@ class IranDNSSwitcher:
                                   f"An unexpected error occurred while detecting the network interface: {e}")
             return None
     
-    
     def is_valid_ip(self, ip):
         """Checks if the provided string is a valid IPv4 address."""
         pattern = r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
@@ -1301,9 +1334,9 @@ class IranDNSSwitcher:
 
     def _add_context_menu(self, widget):
         """Adds a right-click context menu (Cut, Copy, Paste) to the given entry widget."""
-        menu = tkinter.Menu(widget, tearoff=0, bg=self.colors['frame_bg'],
-                            fg=self.colors['text_primary'], activebackground=self.colors['secondary_accent_gray'],
-                            activeforeground=self.colors['text_primary'], bd=1, relief="solid")
+        menu = tkinter.Menu(widget, tearoff=0, bg=self.colors['frame_bg'][1],
+                            fg=self.colors['text_primary'][1], activebackground=self.colors['secondary_accent_gray'][1],
+                            activeforeground=self.colors['text_primary'][1], bd=1, relief="solid")
         
 
         target = widget._entry if hasattr(widget, '_entry') else widget
@@ -1981,11 +2014,22 @@ class IranDNSSwitcher:
                     self.tray_var.set(settings.get("minimize_to_tray", False))
                     self.ipv6_var.set(settings.get("enable_ipv6", False))
                     self.doh_var.set(settings.get("enable_doh", False))
+                    
+                    # --- NEW: Loading theme settings ---
+                    saved_theme = settings.get("theme", "Dark")
+                    self.theme_var.set(saved_theme)
+                    ctk.set_appearance_mode(saved_theme)
+                    
                     self.log("Settings loaded successfully.")
             else:
                 self.log("Settings file not found, using default settings (False).")
+                self.theme_var.set("Dark")
+                ctk.set_appearance_mode("Dark")
+                
         except (json.JSONDecodeError, IOError) as e:
             self.log(f"Could not load settings file, using defaults: {e}")
+            self.theme_var.set("Dark")
+            ctk.set_appearance_mode("Dark")
 
     def save_settings(self):
         """Saves current settings to the file."""
@@ -1995,7 +2039,8 @@ class IranDNSSwitcher:
                 "run_on_startup": self.startup_var.get(),
                 "minimize_to_tray": self.tray_var.get(),
                 "enable_ipv6": self.ipv6_var.get(),
-                "enable_doh": self.doh_var.get()
+                "enable_doh": self.doh_var.get(),
+                "theme": self.theme_var.get() # --- NEW: Saving theme settings ---
             }
             with open(self.settings_file, 'w') as f:
                 json.dump(settings, f, indent=4)
@@ -2531,7 +2576,6 @@ class IranDNSSwitcher:
                 self.root.after(0, lambda: self.working_dns_combo.set("No working DNS found"))
                 self.root.after(0, lambda: self.connect_working_btn.configure(state="disabled"))
 
-
     def run(self):
         self.root.mainloop()
         self.log("Application closing.")
@@ -2546,8 +2590,7 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    #  SINGLE INSTANCE CHECK (MUTEX)
-
+    # SINGLE INSTANCE CHECK (MUTEX) 
     mutex_name = "Global\\IranDNSSwitcher_MehrshadAsgary_Mutex"
     mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
     last_error = ctypes.windll.kernel32.GetLastError()
