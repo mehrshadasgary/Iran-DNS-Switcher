@@ -44,6 +44,186 @@ class IranDNSSwitcher:
         self.current_version = "v2.7"
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
         
+        # --- Translations Dictionary ---
+        self.translations = {
+            "Persian": {
+                "Fast & Easy DNS Configuration for Iran": "تنظیم سریع و آسان دی ان اس برای ایران",
+                "Ready to change DNS": "آماده برای تغییر دی ان اس",
+                "Show Current DNS": "نمایش دی ان اس فعلی",
+                "Ping Current DNS": "پینگ دی ان اس فعلی",
+                "Ping All DNS": "پینگ تمام دی ان اس ها",
+                "Add Custom DNS": "افزودن دی ان اس دلخواه",
+                "Select DNS Provider:": "انتخاب ارائه‌دهنده دی ان اس:",
+                "Iranian": "ایرانی",
+                "Foreign": "خارجی",
+                "Custom": "دلخواه",
+                "Default DNS": "دی ان اس پیش‌فرض",
+                "Network": "شبکه",
+                "URL Scanner": "اسکنر آدرس (URL)",
+                "Settings": "تنظیمات",
+                "Log": "لاگ (گزارش)",
+                "Update DNS List": "بروزرسانی لیست",
+                "Run on Windows Startup": "اجرا هنگام روشن شدن ویندوز",
+                "Minimize to System Tray": "کوچک کردن در System Tray",
+                "Enable IPv6 Support": "فعال‌سازی پشتیبانی IPv6",
+                "Enable DoH (Windows 11+)": "فعال‌سازی DoH (ویندوز ۱۱ به بالا)",
+                "Theme": "پوسته",
+                "Dark": "تاریک",
+                "Light": "روشن",
+                "Language": "زبان",
+                "English": "انگلیسی (English)",
+                "Persian": "فارسی",
+                "Contact Me": "ارتباط با من",
+                "Developed by Mehrshad Asgary": "توسعه یافته توسط مهرشاد عسگری",
+                "Auto-detect (Default)": "تشخیص خودکار (پیش‌فرض)",
+                "No interfaces found": "هیچ شبکه‌ای یافت نشد",
+                "No DNS servers in '{category}' category.": "هیچ دی ان اس در دسته '{category}' یافت نشد.",
+                "Application Log": "لاگ برنامه",
+                "Copy to Clipboard": "کپی در کلیپ‌بورد",
+                "Close": "بستن",
+                "Copied": "کپی شد",
+                "Log content has been copied to the clipboard.": "محتوای لاگ در کلیپ‌بورد کپی شد.",
+                "Checking for updates...": "در حال بررسی بروزرسانی...",
+                "New update is available.": "بروزرسانی جدید در دسترس است.",
+                "Update Available": "بروزرسانی جدید",
+                "A new version ({latest_version}) is available!\n\nYou are currently using version {current_version}.\n\nWould you like to go to the download page?": "یک نسخه جدید ({latest_version}) در دسترس است!\n\nشما در حال استفاده از نسخه {current_version} هستید.\n\nآیا مایلید به صفحه دانلود بروید؟",
+                "Application is up to date.": "برنامه بروز است.",
+                "This will fetch the latest DNS list from GitHub. Your custom DNS entries will not be affected.\n\nDo you want to continue?": "این کار جدیدترین لیست دی ان اس را از گیت‌هاب دریافت می‌کند. دی ان اس‌های دلخواه شما تغییری نخواهند کرد.\n\nآیا مایل به ادامه هستید؟",
+                "Updating DNS list from GitHub...": "در حال بروزرسانی لیست دی ان اس از گیت‌هاب...",
+                "Update Error": "خطا در بروزرسانی",
+                "The fetched DNS list from GitHub is empty or has an invalid format.": "لیست دی ان اس دریافت شده از گیت‌هاب خالی است یا فرمت نامعتبری دارد.",
+                "A network error occurred while fetching the DNS list:\n\n{e}": "خطای شبکه هنگام دریافت لیست دی ان اس:\n\n{e}",
+                "An unexpected error occurred:\n\n{e}": "خطای غیرمنتظره‌ای رخ داد:\n\n{e}",
+                "✓ DNS list updated successfully!": "✓ لیست دی ان اس با موفقیت بروز شد!",
+                "Update Complete": "بروزرسانی تکمیل شد",
+                "The DNS list has been successfully updated from GitHub.": "لیست دی ان اس با موفقیت از گیت‌هاب بروزرسانی شد.",
+                "Delete '{name}'": "حذف '{name}'",
+                "Pinging all DNS servers...": "در حال پینگ تمام دی ان اس ها...",
+                "Pinging {name}...": "در حال پینگ {name}...",
+                "All DNS Ping Results": "نتایج پینگ تمام دی ان اس ها",
+                "Ping Results (Sorted by Latency):": "نتایج پینگ (مرتب شده بر اساس سرعت):",
+                "DNS Name": "نام دی ان اس",
+                "Primary IP": "آی‌پی اصلی",
+                "Latency": "تاخیر",
+                "Connect to Fastest: {name}": "اتصال به سریع‌ترین: {name}",
+                "Ping test complete. Results are ready.": "تست پینگ کامل شد. نتایج آماده است.",
+                "Error": "خطا",
+                "An error occurred. Could not find the details for '{name}' to apply the settings.": "خطایی رخ داد. اطلاعات '{name}' برای اعمال تنظیمات یافت نشد.",
+                "Pinging current DNS...": "در حال پینگ دی ان اس فعلی...",
+                "Ping Failed": "پینگ ناموفق",
+                "Could not determine the current DNS server to ping.": "دی ان اس فعلی برای گرفتن پینگ شناسایی نشد.",
+                "Ping failed: No current DNS found.": "خطا در پینگ: دی ان اس فعلی یافت نشد.",
+                "Current DNS Ping": "پینگ دی ان اس فعلی",
+                "Ping result for {ip}:\n\n{display}": "نتیجه پینگ برای {ip}:\n\n{display}",
+                "Ping for {ip}: {display}": "پینگ برای {ip}: {display}",
+                "Failed to open link:\n{e}": "باز کردن لینک ناموفق بود:\n{e}",
+                "Failed to run as administrator": "اجرا به عنوان ادمین ناموفق بود",
+                "Network Error": "خطای شبکه",
+                "Could not determine the default route interface. Please check your internet connection.": "کارت شبکه پیش‌فرض شناسایی نشد. لطفاً اتصال اینترنت خود را بررسی کنید.",
+                "Network Interface Error": "خطای کارت شبکه",
+                "Manage Custom DNS": "مدیریت دی ان اس دلخواه",
+                "Enter Custom DNS Servers:": "سرورهای دی ان اس دلخواه خود را وارد کنید:",
+                "Custom DNS Name (e.g., My DNS)": "نام دی ان اس (مثال: My DNS)",
+                "Primary IPv4 (e.g., 8.8.8.8)": "IPv4 اصلی (مثال: 8.8.8.8)",
+                "Secondary IPv4 (Optional)": "IPv4 دوم (اختیاری)",
+                "Primary IPv6 (Optional)": "IPv6 اصلی (اختیاری)",
+                "Secondary IPv6 (Optional)": "IPv6 دوم (اختیاری)",
+                "Save DNS": "ذخیره دی ان اس",
+                "Backup & Restore:": "پشتیبان‌گیری و بازیابی:",
+                "Export JSON": "خروجی JSON",
+                "Import JSON": "ورودی JSON",
+                "Export": "خروجی",
+                "No custom DNS servers found to export.": "هیچ دی ان اس دلخواهی برای گرفتن خروجی یافت نشد.",
+                "Export Custom DNS": "گرفتن خروجی از دی ان اس",
+                "Export Successful": "خروجی موفقیت‌آمیز",
+                "Custom DNS successfully exported to:\n{path}": "دی ان اس‌های دلخواه با موفقیت استخراج شدند به:\n{path}",
+                "Export Failed": "خطا در خروجی",
+                "Failed to export custom DNS:\n{e}": "خطا در گرفتن خروجی دی ان اس:\n{e}",
+                "Import Custom DNS": "وارد کردن دی ان اس",
+                "Import Successful": "ورود موفقیت‌آمیز",
+                "Successfully imported {count} new DNS entries.": "تعداد {count} دی ان اس جدید با موفقیت اضافه شد.",
+                "Import Info": "اطلاعات ورود",
+                "No new DNS entries were found. All entries in the file already exist.": "دی ان اس جدیدی یافت نشد. همه موارد از قبل وجود دارند.",
+                "Import Failed": "خطا در ورود",
+                "Failed to import custom DNS. Ensure it's a valid JSON file.\nError: {e}": "خطا در وارد کردن دی ان اس. مطمئن شوید فایل JSON معتبر است.\nخطا: {e}",
+                "Input Error": "خطای ورودی",
+                "Primary IPv4 field cannot be empty.": "فیلد IPv4 اصلی نمی‌تواند خالی باشد.",
+                "Invalid IP": "آی‌پی نامعتبر",
+                "The primary IPv4 address '{ip}' is not valid.": "آدرس IPv4 اصلی '{ip}' معتبر نیست.",
+                "The secondary IPv4 address '{ip}' is not valid.": "آدرس IPv4 دوم '{ip}' معتبر نیست.",
+                "The primary IPv6 address '{ip}' is not valid.": "آدرس IPv6 اصلی '{ip}' معتبر نیست.",
+                "The secondary IPv6 address '{ip}' is not valid.": "آدرس IPv6 دوم '{ip}' معتبر نیست.",
+                "DNS Exists": "دی ان اس موجود است",
+                "A DNS with the name '{name}' already exists in Custom DNS.": "یک دی ان اس با نام '{name}' در لیست دلخواه از قبل وجود دارد.",
+                "Success": "موفقیت",
+                "DNS '{name}' has been added to the list.": "دی ان اس '{name}' با موفقیت به لیست اضافه شد.",
+                "Confirm Deletion": "تایید حذف",
+                "Are you sure you want to delete '{name}'?": "آیا مطمئن هستید که می‌خواهید '{name}' را حذف کنید؟",
+                "Administrator Access Required": "نیاز به دسترسی ادمین (Administrator)",
+                "This application needs administrator privileges to change DNS settings.\n\nWould you like to restart as administrator?": "این برنامه برای تغییر تنظیمات دی ان اس نیاز به دسترسی ادمین دارد.\n\nآیا مایلید برنامه را به عنوان ادمین مجددا راه‌اندازی کنید؟",
+                "✗ Error: No active network interface found": "✗ خطا: کارت شبکه فعالی یافت نشد",
+                "Changing to {name} for '{interface}'...": "در حال تغییر به {name} برای '{interface}'...",
+                "✓ DNS for '{interface}' set to Default (DHCP)": "✓ دی ان اس '{interface}' به پیش‌فرض تغییر کرد",
+                "DNS successfully set to Default (DHCP) for interface '{interface}'": "دی ان اس با موفقیت برای کارت شبکه '{interface}' به حالت پیش‌فرض (DHCP) تنظیم شد",
+                "✓ DNS for '{interface}' changed to {name}": "✓ دی ان اس '{interface}' به {name} تغییر یافت",
+                "DNS successfully changed to {name} for interface '{interface}'\n\nIPv4: {ip}": "دی ان اس با موفقیت به {name} برای کارت شبکه '{interface}' تغییر یافت\n\nIPv4: {ip}",
+                "\n(IPv6 Blocked to prevent DNS Leak)": "\n(برای جلوگیری از نشت، IPv6 مسدود شد)",
+                "\n\n🔒 DoH Enforced (Encrypted Connection)": "\n\n🔒 اتصال DoH فعال است (اتصال رمزنگاری شده)",
+                "✗ Unexpected error during DNS change": "✗ خطای غیرمنتظره هنگام تغییر دی ان اس",
+                "An unexpected error occurred during DNS change:\n{e}": "خطای غیرمنتظره در حین تغییر دی ان اس رخ داد:\n{e}",
+                "Current DNS Servers for '{interface}':\n\n": "دی ان اس های فعلی برای '{interface}':\n\n",
+                "IPv4 Servers:\n": "سرورهای IPv4:\n",
+                "  • {label}: {ip}{doh}\n": "  • {label}: {ip}{doh}\n",
+                "IPv6 Servers:\n": "سرورهای IPv6:\n",
+                "DNS servers configured automatically through DHCP or no static DNS specified.\n\n": "سرورهای دی ان اس روی حالت خودکار (DHCP) هستند یا دی ان اس ثابتی ثبت نشده است.\n\n",
+                "🔒 DoH Status: Active (Encrypted HTTPS connection)\n": "🔒 وضعیت DoH: فعال (اتصال رمزنگاری شده HTTPS)\n",
+                "Current DNS Status": "وضعیت فعلی دی ان اس",
+                "Failed to get DNS information:\n{e}": "خطا در دریافت اطلاعات دی ان اس:\n{e}",
+                "Confirm Exit": "تایید خروج",
+                "Are you sure you want to exit?": "آیا مطمئن هستید که می‌خواهید خارج شوید؟",
+                "Registry Error": "خطای ریجستری",
+                "Failed to add to startup:\n{e}": "خطا در اضافه کردن به استارتاپ:\n{e}",
+                "Failed to remove from startup:\n{e}": "خطا در حذف از استارتاپ:\n{e}",
+                "Sanction Bypass Scanner": "اسکنر دور زدن تحریم‌ها",
+                "Find Working DNS for Restricted Websites": "یافتن دی ان اس فعال برای سایت‌های تحریم شده",
+                "Iranian DNS": "دی ان اس ایرانی",
+                "Foreign DNS": "دی ان اس خارجی",
+                "Custom DNS": "دی ان اس دلخواه",
+                "Website URL (e.g., spotify.com)": "آدرس سایت (مثال: spotify.com)",
+                "Stop": "توقف",
+                "Scan": "اسکن",
+                "Waiting for scan...": "منتظر اسکن...",
+                "Connect to Selected": "اتصال به انتخاب شده",
+                "Please enter a valid URL.": "لطفاً یک آدرس سایت معتبر وارد کنید.",
+                "Selection Error": "خطای انتخاب",
+                "Please select at least one DNS category to scan.": "لطفاً حداقل یک دسته دی ان اس را برای اسکن انتخاب کنید.",
+                "Scanning...": "در حال اسکن...",
+                "Target Domain": "دامنه هدف",
+                "⚠️ Scan stopped by user.\n": "⚠️ اسکن توسط کاربر متوقف شد.\n",
+                "Testing {name} ... ": "در حال تست {name} ... ",
+                "❌ Blocked (Access Denied by Firewall)\n": "❌ مسدود شده (رد دسترسی توسط فایروال)\n",
+                "✅ Works ({status})\n": "✅ کار میکند ({status})\n",
+                "✅ Works (Internal Redirect)\n": "✅ کار میکند (تغییر مسیر داخلی)\n",
+                "⚠️ Redirected without Location header.\n": "⚠️ ریدایرکت بدون هدر Location.\n",
+                "❌ Blocked ({status})\n": "❌ مسدود شده ({status})\n",
+                "⚠️ Reached, but: {status}\n": "⚠️ سایت در دسترس بود، اما: {status}\n",
+                "❌ Failed (Timeout)\n": "❌ ناموفق (تایم‌اوت)\n",
+                "❌ Failed (Connection Error)\n": "❌ ناموفق (خطای اتصال)\n",
+                "❌ Domain Resolution Failed\n": "❌ خطا در تشخیص دامنه\n",
+                "❌ DNS Error\n": "❌ خطای دی ان اس\n",
+                "❌ Failed (Too many redirects)\n": "❌ ناموفق (تغییر مسیر بیش از حد)\n",
+                "❌ Timeout (nslookup)\n": "❌ تایم‌اوت (nslookup)\n",
+                "❌ Error: {e}\n": "❌ خطا: {e}\n",
+                "Scan complete.\n": "اسکن کامل شد.\n",
+                "No working DNS found": "دی ان اس فعالی یافت نشد",
+                "Primary": "اصلی",
+                "Secondary": "دوم",
+                "Cut": "برش",
+                "Copy": "کپی",
+                "Paste": "چسباندن"
+            }
+        }
+        
         # --- File for storing custom DNS ---
         app_data_path = os.getenv('LOCALAPPDATA')
         app_folder = os.path.join(app_data_path, "IranDNSSwitcher")
@@ -60,7 +240,8 @@ class IranDNSSwitcher:
         self.tray_var = ctk.BooleanVar(value=False)
         self.ipv6_var = ctk.BooleanVar(value=False) # New IPv6 setting
         self.doh_var = ctk.BooleanVar(value=False) # DoH Setting
-        self.theme_var = ctk.StringVar(value="Dark") # --- New Theme Setting ---
+        self.theme_var = ctk.StringVar(value="Dark") # --- Theme Setting ---
+        self.language_var = ctk.StringVar(value="English") # --- Language Setting ---
         self.tray_icon = None
         self.icon_path = None
 
@@ -83,7 +264,6 @@ class IranDNSSwitcher:
             self.log(f"Error setting iconbitmap: {e}. This might happen on non-Windows systems or if the .ico file is invalid.")
 
         # --- Color ---
-        # Updated to (Light, Dark) tuples so Light theme works properly without breaking the hardcoded colors
         self.colors = {
             'app_bg': ('#EBEBEB', '#242424'),
             'frame_bg': ('#DBDBDB', '#2E2E2E'),
@@ -110,39 +290,15 @@ class IranDNSSwitcher:
         }
 
         # --- Fonts ---
-        self.font_title = ctk.CTkFont(family="Segoe UI",
-                                       size=36,
-                                         weight="bold")
-        
-        self.font_subtitle = ctk.CTkFont(family="Segoe UI",
-                                          size=12)
-        
-        self.font_info_text = ctk.CTkFont(family="Segoe UI",
-                                           size=11)
-        
-        self.font_info_link = ctk.CTkFont(family="Segoe UI",
-                                           size=11,
-                                             underline=True)
-        
-        self.font_section_title = ctk.CTkFont(family="Segoe UI",
-                                               size=16,
-                                                 weight="bold")
-        
-        self.font_button_main = ctk.CTkFont(family="Segoe UI",
-                                             size=12,
-                                               weight="bold")
-        
-        self.font_category_button = ctk.CTkFont(family="Segoe UI",
-                                                 size=13,
-                                                   weight="bold") 
-        
-        self.font_status_label = ctk.CTkFont(family="Segoe UI",
-                                              size=11)
-        
-        self.font_dns_button_name = ctk.CTkFont(family="Segoe UI",
-                                                 size=12,
-                                                   weight="bold")
-        
+        self.font_title = ctk.CTkFont(family="Segoe UI", size=36, weight="bold")
+        self.font_subtitle = ctk.CTkFont(family="Segoe UI", size=12)
+        self.font_info_text = ctk.CTkFont(family="Segoe UI", size=11)
+        self.font_info_link = ctk.CTkFont(family="Segoe UI", size=11, underline=True)
+        self.font_section_title = ctk.CTkFont(family="Segoe UI", size=16, weight="bold")
+        self.font_button_main = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
+        self.font_category_button = ctk.CTkFont(family="Segoe UI", size=13, weight="bold") 
+        self.font_status_label = ctk.CTkFont(family="Segoe UI", size=11)
+        self.font_dns_button_name = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
         self.font_delete_button = ctk.CTkFont(family="Segoe UI", size=10, weight="bold")
 
         # --- Known DoH Templates ---
@@ -176,100 +332,34 @@ class IranDNSSwitcher:
         # --- DNS Servers with Categories ---
         self.DEFAULT_DNS_SERVERS = {
             "Iranian": {
-                "Shecan": ["178.22.122.100",
-                            "185.51.200.2"],
-
-                "Radar": ["10.202.10.10",
-                           "10.202.10.11"],
-
-                "Electro": ["78.157.42.100",
-                             "78.157.42.101"],
-
-                "Begzar": ["185.55.225.25",
-                            "185.55.226.26"],
-
-                "403": ["10.202.10.202",
-                         "10.202.10.102"],
-
-                "Shatel": ["85.15.1.14",
-                            "85.15.1.15"],
-
-                "Shelter": ["78.157.60.6",
-                             "78.157.60.242"],
-
-                "Beshkan": ["181.41.194.177",
-                             "181.41.194.186"],
-                             
-                "Shecan 2": ["178.22.122.101",
-                              "185.51.200.1"],
-                              
-                "Begzar 2": ["185.55.224.24",
-                              ""],
-                              
-                "Shelter 2": ["91.92.250.185",
-                               "91.92.244.233"],
-                               
-                "Hamrah Aval": ["208.67.220.200",
-                                 "208.67.222.222"],
-                                 
-                "Irancell": ["74.82.42.42",
-                              "0.0.0.0"],
-                              
-                "Rightel": ["91.239.100.100",
-                             "89.223.43.71"],
-                             
-                "NobarCloud": ["78.110.120.220",
-                                "78.110.120.200"],
-                                
-                "DynX": ["193.24.103.1",
-                          "193.24.103.2"],
-
+                "Shecan": ["178.22.122.100", "185.51.200.2"],
+                "Radar": ["10.202.10.10", "10.202.10.11"],
+                "Electro": ["78.157.42.100", "78.157.42.101"],
+                "Begzar": ["185.55.225.25", "185.55.226.26"],
+                "403": ["10.202.10.202", "10.202.10.102"],
+                "Shatel": ["85.15.1.14", "85.15.1.15"],
+                "Shelter": ["78.157.60.6", "78.157.60.242"],
+                "Beshkan": ["181.41.194.177", "181.41.194.186"],
+                "Shecan 2": ["178.22.122.101", "185.51.200.1"],
+                "Begzar 2": ["185.55.224.24", ""],
+                "Shelter 2": ["91.92.250.185", "91.92.244.233"],
+                "Hamrah Aval": ["208.67.220.200", "208.67.222.222"],
+                "Irancell": ["74.82.42.42", "0.0.0.0"],
+                "Rightel": ["91.239.100.100", "89.223.43.71"],
+                "NobarCloud": ["78.110.120.220", "78.110.120.200"],
+                "DynX": ["193.24.103.1", "193.24.103.2"],
             },
             "Foreign": {
-                "Google": ["8.8.8.8",
-                            "8.8.4.4",
-                            "2001:4860:4860::8888",
-                            "2001:4860:4860::8844"],
-
-                "Cloudflare": ["1.1.1.1",
-                                "1.0.0.1",
-                                "2606:4700:4700::1111",
-                                "2606:4700:4700::1001"],
-
-                "OpenDNS": ["208.67.222.222",
-                             "208.67.220.220",
-                             "2620:119:35::35",
-                             "2620:119:53::53"],
-
-                "Comodo": ["8.26.56.26",
-                            "8.20.247.20"],
-
-                "Quad9": ["9.9.9.9",
-                           "149.112.112.112",
-                           "2620:fe::fe",
-                           "2620:fe::9"],
-
-                "AlternateDNS": ["76.76.19.19",
-                                  "76.223.122.150",
-                                  "2602:fcbc::ad",
-                                  "2602:fcbc:2::ad"],
-
-                "Control D": ["76.76.2.0",
-                               "76.76.10.0",
-                               "2606:1a40::",
-                               "2606:1a40:1::"],
-
-                "Yandex": ["77.88.8.8",
-                            "77.88.8.1",
-                            "2a02:6b8::feed:0ff",
-                            "2a02:6b8:0:1::feed:0ff"],
-                            
-                "Cisco": ["208.67.222.222",
-                           "208.67.222.20"],
-                           
-                "Verisign": ["64.6.64.6",
-                              "64.6.65.6"],
-
+                "Google": ["8.8.8.8", "8.8.4.4", "2001:4860:4860::8888", "2001:4860:4860::8844"],
+                "Cloudflare": ["1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001"],
+                "OpenDNS": ["208.67.222.222", "208.67.220.220", "2620:119:35::35", "2620:119:53::53"],
+                "Comodo": ["8.26.56.26", "8.20.247.20"],
+                "Quad9": ["9.9.9.9", "149.112.112.112", "2620:fe::fe", "2620:fe::9"],
+                "AlternateDNS": ["76.76.19.19", "76.223.122.150", "2602:fcbc::ad", "2602:fcbc:2::ad"],
+                "Control D": ["76.76.2.0", "76.76.10.0", "2606:1a40::", "2606:1a40:1::"],
+                "Yandex": ["77.88.8.8", "77.88.8.1", "2a02:6b8::feed:0ff", "2a02:6b8:0:1::feed:0ff"],
+                "Cisco": ["208.67.222.222", "208.67.222.20"],
+                "Verisign": ["64.6.64.6", "64.6.65.6"],
             },
             "Custom": {}
         }
@@ -290,17 +380,59 @@ class IranDNSSwitcher:
         self.load_custom_dns()
         
         self.setup_ui()
-        self.apply_initial_settings()
+        self.apply_initial_settings() # Applies theme and language configs dynamically
         
         # Handle window close event
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # --- Start Update Check in a Background Thread ---
-        update_thread = threading.Thread(target=self.check_for_updates,
-                                          daemon=True)
-        
+        update_thread = threading.Thread(target=self.check_for_updates, daemon=True)
         update_thread.start()
-        # --- End of Update Check Start ---
+
+    # --- Language Translation Helper ---
+    def tr(self, text, **kwargs):
+        """Translates a given text based on current language."""
+        lang = self.language_var.get()
+        translated = self.translations.get(lang, {}).get(text, text)
+        if kwargs:
+            try:
+                return translated.format(**kwargs)
+            except Exception:
+                return translated
+        return translated
+
+    def update_ui_texts(self):
+        """Refreshes all static text variables in the UI when language changes."""
+        self.subtitle_label.configure(text=self.tr("Fast & Easy DNS Configuration for Iran"))
+        
+        # Dynamic label translation structure
+        dev_str = f"{self.current_version} | {self.tr('Developed by Mehrshad Asgary')} | "
+        self.dev_label.configure(text=dev_str)
+        self.contact_link.configure(text=self.tr("Contact Me"))
+        
+        # Change status safely to default
+        self.status_label.configure(text=self.tr("Ready to change DNS"))
+
+        self.current_dns_btn.configure(text=self.tr("Show Current DNS"))
+        self.ping_current_btn.configure(text=self.tr("Ping Current DNS"))
+        self.ping_all_btn.configure(text=self.tr("Ping All DNS"))
+        self.add_custom_dns_btn.configure(text=self.tr("Add Custom DNS"))
+
+        self.section_title.configure(text=self.tr("Select DNS Provider:"))
+        
+        for name, btn in self.category_buttons.items():
+            btn.configure(text=self.tr(name))
+            
+        self.default_btn.configure(text=self.tr("Default DNS"))
+
+        self.network_btn.configure(text=self.tr("Network"))
+        self.url_scanner_btn.configure(text=self.tr("URL Scanner"))
+        self.settings_menubutton.configure(text=self.tr("Settings"))
+        self.log_btn.configure(text=self.tr("Log"))
+        self.update_dns_btn.configure(text=self.tr("Update DNS List"))
+        
+        self._rebuild_settings_menu()
+        self.display_dns_for_category(self.current_category)
 
     # --- Centralized logging function ---
     def log(self, message):
@@ -316,21 +448,15 @@ class IranDNSSwitcher:
         screen_height = self.root.winfo_screenheight()
 
         # --- Adaptive Height Logic ---
-        # If the screen is not tall enough for the default height plus a margin, adjust the height.
         app_height = height
         if screen_height < (height + 100):
-            # Leave some space for taskbar and window decorations
             new_height = screen_height - 120 
-            # Ensure the window doesn't become impractically small
             app_height = max(600, new_height) 
             self.log(f"Screen height ({screen_height}px) is small. Adjusting window height from {height}px to {app_height}px.")
         
         app_width = width
-
         x = int((screen_width / 2) - (app_width / 2))
-        # Nudge up a bit from the absolute center
         y = int((screen_height / 2) - (app_height / 2) - 40) 
-        
         self.root.geometry(f'{app_width}x{app_height}+{x}+{y}')
         
     def setup_ui(self):
@@ -355,36 +481,31 @@ class IranDNSSwitcher:
         info_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
         info_frame.pack(pady=(0, 10))
         
-        dev_label = ctk.CTkLabel(
+        self.dev_label = ctk.CTkLabel(
             info_frame,
-            text=f"{self.current_version} | Developed by Mehrshad Asgary | ",
+            text=f"{self.current_version} | {self.tr('Developed by Mehrshad Asgary')} | ",
             font=self.font_info_text,
             text_color=self.colors['text_secondary']
         )
-
-        dev_label.pack(side=ctk.LEFT)
+        self.dev_label.pack(side=ctk.LEFT)
         
-        contact_link = ctk.CTkLabel(
+        self.contact_link = ctk.CTkLabel(
             info_frame,
-            text="Contact Me",
+            text=self.tr("Contact Me"),
             font=self.font_info_link,
             text_color=self.colors['primary_accent_hover_red'],
             cursor="hand2"
         )
-
-        # Contact Me
-        contact_link.pack(side=ctk.LEFT)
-        contact_link.bind("<Button-1>",
-                           lambda e: self.open_link("https://mehrshadasgary.ir"))
+        self.contact_link.pack(side=ctk.LEFT)
+        self.contact_link.bind("<Button-1>", lambda e: self.open_link("https://mehrshadasgary.ir"))
         
-        subtitle_label = ctk.CTkLabel(
+        self.subtitle_label = ctk.CTkLabel(
             header_frame,
-            text="Fast & Easy DNS Configuration for Iran",
+            text=self.tr("Fast & Easy DNS Configuration for Iran"),
             font=self.font_subtitle,
             text_color=self.colors['text_secondary']
         )
-
-        subtitle_label.pack()
+        self.subtitle_label.pack()
         
         # --- Status  ---
         status_frame = ctk.CTkFrame(main_container, fg_color="transparent") 
@@ -392,93 +513,65 @@ class IranDNSSwitcher:
         
         self.status_label = ctk.CTkLabel(
             status_frame,
-            text="Ready to change DNS",
+            text=self.tr("Ready to change DNS"),
             font=self.font_status_label,
             text_color=self.colors['success']
         )
-
         self.status_label.pack()
 
         # --- Control ---
-        control_frame = ctk.CTkFrame(main_container,
-                                      fg_color="transparent")
-        
-        control_frame.pack(fill='x',
-                            pady=(10, 5),
-                              side='bottom')
+        control_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        control_frame.pack(fill='x', pady=(10, 5), side='bottom')
 
-        button_holder_frame = ctk.CTkFrame(control_frame,
-                                            fg_color="transparent")
-        
+        button_holder_frame = ctk.CTkFrame(control_frame, fg_color="transparent")
         button_holder_frame.pack()
         
         btn_width = 155
         btn_height = 40
         
-        current_dns_btn = ctk.CTkButton(
-            button_holder_frame, text="Show Current DNS", font=self.font_button_main,
-            fg_color=self.colors['secondary_accent_gray'],
-              hover_color=self.colors['secondary_accent_gray_hover'],
-            text_color=self.colors['text_primary'],
-              command=self.show_current_dns,
+        self.current_dns_btn = ctk.CTkButton(
+            button_holder_frame, text=self.tr("Show Current DNS"), font=self.font_button_main,
+            fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'],
+            text_color=self.colors['text_primary'], command=self.show_current_dns,
             height=btn_height, width=btn_width, corner_radius=8
         )
+        self.current_dns_btn.pack(side=ctk.LEFT, padx=(0, 10))
 
-        current_dns_btn.pack(side=ctk.LEFT, padx=(0, 10))
-
-        ping_current_btn = ctk.CTkButton(
-            button_holder_frame, text="Ping Current DNS",
-              font=self.font_button_main,
-            fg_color=self.colors['secondary_accent_gray'],
-              hover_color=self.colors['secondary_accent_gray_hover'],
-            text_color=self.colors['text_primary'],
-              command=self.ping_current_dns,
-            height=btn_height, width=btn_width,
-              corner_radius=8
+        self.ping_current_btn = ctk.CTkButton(
+            button_holder_frame, text=self.tr("Ping Current DNS"), font=self.font_button_main,
+            fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'],
+            text_color=self.colors['text_primary'], command=self.ping_current_dns,
+            height=btn_height, width=btn_width, corner_radius=8
         )
+        self.ping_current_btn.pack(side=ctk.LEFT, padx=(0, 10))
 
-        ping_current_btn.pack(side=ctk.LEFT, padx=(0, 10))
-
-        ping_all_btn = ctk.CTkButton(
-            button_holder_frame, text="Ping All DNS",
-              font=self.font_button_main,
-            fg_color=self.colors['secondary_accent_gray'],
-              hover_color=self.colors['secondary_accent_gray_hover'],
-            text_color=self.colors['text_primary'],
-              command=self.ping_all_dns,
-            height=btn_height, width=btn_width,
-              corner_radius=8
+        self.ping_all_btn = ctk.CTkButton(
+            button_holder_frame, text=self.tr("Ping All DNS"), font=self.font_button_main,
+            fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'],
+            text_color=self.colors['text_primary'], command=self.ping_all_dns,
+            height=btn_height, width=btn_width, corner_radius=8
         )
+        self.ping_all_btn.pack(side=ctk.LEFT, padx=(0, 10))
 
-        ping_all_btn.pack(side=ctk.LEFT, padx=(0, 10))
-
-        add_custom_dns_btn = ctk.CTkButton(
-            button_holder_frame, text="Add Custom DNS",
-              font=self.font_button_main,
-            fg_color=self.colors['secondary_accent_gray'],
-              hover_color=self.colors['secondary_accent_gray_hover'],
-            text_color=self.colors['text_primary'],
-              command=self.open_add_custom_dns_window,
-            height=btn_height,
-              width=btn_width,
-                corner_radius=8
+        self.add_custom_dns_btn = ctk.CTkButton(
+            button_holder_frame, text=self.tr("Add Custom DNS"), font=self.font_button_main,
+            fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'],
+            text_color=self.colors['text_primary'], command=self.open_add_custom_dns_window,
+            height=btn_height, width=btn_width, corner_radius=8
         )
-
-        add_custom_dns_btn.pack(side=ctk.LEFT)
+        self.add_custom_dns_btn.pack(side=ctk.LEFT)
         
         # --- DNS Section ---
-        dns_section_frame = ctk.CTkFrame(main_container,
-                                          fg_color=self.colors['frame_bg'],
-                                            corner_radius=10)
+        dns_section_frame = ctk.CTkFrame(main_container, fg_color=self.colors['frame_bg'], corner_radius=10)
         dns_section_frame.pack(fill='x', side='top', pady=(0, 15))
 
-        section_title = ctk.CTkLabel(
+        self.section_title = ctk.CTkLabel(
             dns_section_frame,
-            text="Select DNS Provider:",
+            text=self.tr("Select DNS Provider:"),
             font=self.font_section_title,
             text_color=self.colors['text_primary']
         )
-        section_title.pack(anchor='w', pady=(10, 5), padx=15)
+        self.section_title.pack(anchor='w', pady=(10, 5), padx=15)
 
         # --- Category Buttons Frame ---
         category_frame = ctk.CTkFrame(dns_section_frame, fg_color="transparent")
@@ -487,24 +580,19 @@ class IranDNSSwitcher:
         self.category_buttons = {}
         categories = ["Iranian", "Foreign", "Custom"]
         for i, cat_name in enumerate(categories):
-            cat_btn = ctk.CTkButton(category_frame, text=cat_name, font=self.font_category_button, command=lambda c=cat_name: self.display_dns_for_category(c))
+            cat_btn = ctk.CTkButton(category_frame, text=self.tr(cat_name), font=self.font_category_button, command=lambda c=cat_name: self.display_dns_for_category(c))
             cat_btn.pack(side='left', padx=(0, 5))
             self.category_buttons[cat_name] = cat_btn
         
         # --- Default DNS Button ---
-        default_btn = ctk.CTkButton(category_frame, text="Default DNS", font=self.font_category_button, command=lambda: self.change_dns("auto", "Default (DHCP)"), fg_color=self.colors['dns_auto'], hover_color=self.colors['secondary_accent_gray_hover'])
-        default_btn.pack(side='right', padx=(5, 0))
+        self.default_btn = ctk.CTkButton(category_frame, text=self.tr("Default DNS"), font=self.font_category_button, command=lambda: self.change_dns("auto", "Default (DHCP)"), fg_color=self.colors['dns_auto'], hover_color=self.colors['secondary_accent_gray_hover'])
+        self.default_btn.pack(side='right', padx=(5, 0))
         
-        self.dns_scroll_frame = ctk.CTkScrollableFrame(dns_section_frame,
-                                                        fg_color="transparent",
-                                                          height=245) 
-        
+        self.dns_scroll_frame = ctk.CTkScrollableFrame(dns_section_frame, fg_color="transparent", height=245) 
         self.dns_scroll_frame.pack(fill='x', padx=10, pady=(0, 10))
         
         for i in range(3):
             self.dns_scroll_frame.columnconfigure(i, weight=1, minsize=180)
-        
-        self.display_dns_for_category(self.current_category) # Display initial category
 
     def setup_custom_menu(self):
         """Creates a custom, theme-able menu bar."""
@@ -513,42 +601,53 @@ class IranDNSSwitcher:
 
         # Network Button
         self.network_btn = ctk.CTkButton(
-            self.menu_bar_frame, text="Network",
-            font=self.font_button_main,
-            fg_color="transparent",
-            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
-            hover_color=self.colors['secondary_accent_gray'],
-            width=80,
-            corner_radius=0,
-            command=self.toggle_network_menu
+            self.menu_bar_frame, text=self.tr("Network"), font=self.font_button_main,
+            fg_color="transparent", text_color=self.colors['text_primary'], hover_color=self.colors['secondary_accent_gray'],
+            width=80, corner_radius=0, command=self.toggle_network_menu
         )
         self.network_btn.pack(side="left", padx=(5,0))
 
-        # --- NEW: URL Scanner Button ---
-        url_scanner_btn = ctk.CTkButton(
-            self.menu_bar_frame, text="URL Scanner",
-            font=self.font_button_main,
-            fg_color="transparent",
-            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
-            hover_color=self.colors['secondary_accent_gray'],
-            width=100,
-            corner_radius=0,
-            command=self.show_url_scanner_window
+        # URL Scanner Button
+        self.url_scanner_btn = ctk.CTkButton(
+            self.menu_bar_frame, text=self.tr("URL Scanner"), font=self.font_button_main,
+            fg_color="transparent", text_color=self.colors['text_primary'], hover_color=self.colors['secondary_accent_gray'],
+            width=100, corner_radius=0, command=self.show_url_scanner_window
         )
-        url_scanner_btn.pack(side="left")
+        self.url_scanner_btn.pack(side="left")
 
-        # --- Settings Menu Button ---
+        # Settings Menu Button
         self.settings_menubutton = ctk.CTkButton(
-            self.menu_bar_frame, text="Settings",
-            font=self.font_button_main,
-            fg_color="transparent",
-            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
-            hover_color=self.colors['secondary_accent_gray'],
+            self.menu_bar_frame, text=self.tr("Settings"), font=self.font_button_main,
+            fg_color="transparent", text_color=self.colors['text_primary'], hover_color=self.colors['secondary_accent_gray'],
             width=80, corner_radius=0
         )
         self.settings_menubutton.pack(side="left")
 
-        # Standard Tkinter Menu for Dropdown (Using [1] to keep the native menu styled dark without crashing in light mode)
+        self._rebuild_settings_menu()
+
+        # Log Button
+        self.log_btn = ctk.CTkButton(
+            self.menu_bar_frame, text=self.tr("Log"), font=self.font_button_main,
+            fg_color="transparent", text_color=self.colors['text_primary'], hover_color=self.colors['secondary_accent_gray'],
+            width=50, corner_radius=0, command=self.show_log_window
+        )
+        self.log_btn.pack(side="left")
+
+        # Update DNS Button
+        self.update_dns_btn = ctk.CTkButton(
+            self.menu_bar_frame, text=self.tr("Update DNS List"), font=self.font_button_main,
+            fg_color="transparent", text_color=self.colors['text_primary'], hover_color=self.colors['secondary_accent_gray'],
+            width=120, corner_radius=0, command=self.update_dns_list_from_github
+        )
+        self.update_dns_btn.pack(side="left")
+        
+        self.network_menu_window = None
+
+    def _rebuild_settings_menu(self):
+        """Rebuilds the settings dropdown menu specifically."""
+        if hasattr(self, 'settings_menu'):
+            self.settings_menu.destroy()
+
         self.settings_menu = tkinter.Menu(self.menu_bar_frame, tearoff=0,
                                            background=self.colors['frame_bg'][1],
                                            foreground=self.colors['text_primary'][1],
@@ -556,28 +655,27 @@ class IranDNSSwitcher:
                                            activeforeground=self.colors['text_primary'][1],
                                            bd=1, relief="solid")
         
-        self.settings_menu.add_checkbutton(label="Run on Windows Startup",
+        self.settings_menu.add_checkbutton(label=self.tr("Run on Windows Startup"),
                                            variable=self.startup_var,
                                            command=self.toggle_startup)
         
-        self.settings_menu.add_checkbutton(label="Minimize to System Tray",
+        self.settings_menu.add_checkbutton(label=self.tr("Minimize to System Tray"),
                                            variable=self.tray_var,
                                            command=self.save_settings)
                                            
         self.settings_menu.add_separator()
         
-        # Added IPv6 Toggle to settings
-        self.settings_menu.add_checkbutton(label="Enable IPv6 Support",
+        self.settings_menu.add_checkbutton(label=self.tr("Enable IPv6 Support"),
                                            variable=self.ipv6_var,
                                            command=self.save_settings)
 
-        self.settings_menu.add_checkbutton(label="Enable DoH (Windows 11+)",
+        self.settings_menu.add_checkbutton(label=self.tr("Enable DoH (Windows 11+)"),
                                            variable=self.doh_var,
                                            command=self.save_settings)
 
         self.settings_menu.add_separator()
         
-        # --- Theme Menu ---
+        # Theme Menu
         theme_menu = tkinter.Menu(self.settings_menu, tearoff=0,
                                    background=self.colors['frame_bg'][1],
                                    foreground=self.colors['text_primary'][1],
@@ -585,40 +683,24 @@ class IranDNSSwitcher:
                                    activeforeground=self.colors['text_primary'][1],
                                    bd=1, relief="solid")
         
-        theme_menu.add_radiobutton(label="Dark", variable=self.theme_var, value="Dark", command=self.change_theme)
-        theme_menu.add_radiobutton(label="Light", variable=self.theme_var, value="Light", command=self.change_theme)
-        
-        self.settings_menu.add_cascade(label="Theme", menu=theme_menu)
+        theme_menu.add_radiobutton(label=self.tr("Dark"), variable=self.theme_var, value="Dark", command=self.change_theme)
+        theme_menu.add_radiobutton(label=self.tr("Light"), variable=self.theme_var, value="Light", command=self.change_theme)
+        self.settings_menu.add_cascade(label=self.tr("Theme"), menu=theme_menu)
 
+        # Language Menu
+        lang_menu = tkinter.Menu(self.settings_menu, tearoff=0,
+                                   background=self.colors['frame_bg'][1],
+                                   foreground=self.colors['text_primary'][1],
+                                   activebackground=self.colors['secondary_accent_gray'][1],
+                                   activeforeground=self.colors['text_primary'][1],
+                                   bd=1, relief="solid")
+        
+        lang_menu.add_radiobutton(label=self.tr("English"), variable=self.language_var, value="English", command=self.change_language)
+        lang_menu.add_radiobutton(label=self.tr("Persian"), variable=self.language_var, value="Persian", command=self.change_language)
+        self.settings_menu.add_cascade(label=self.tr("Language"), menu=lang_menu)
+
+        # Bind event again dynamically
         self.settings_menubutton.bind("<Button-1>", self.show_settings_menu)
-
-        # Log Button
-        log_btn = ctk.CTkButton(
-            self.menu_bar_frame, text="Log",
-            font=self.font_button_main,
-            fg_color="transparent",
-            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
-            hover_color=self.colors['secondary_accent_gray'],
-            width=50,
-            corner_radius=0,
-            command=self.show_log_window
-        )
-        log_btn.pack(side="left")
-
-        # Update DNS Button
-        update_dns_btn = ctk.CTkButton(
-            self.menu_bar_frame, text="Update DNS List",
-            font=self.font_button_main,
-            fg_color="transparent",
-            text_color=self.colors['text_primary'], # Added to fix text color in Light theme
-            hover_color=self.colors['secondary_accent_gray'],
-            width=120,
-            corner_radius=0,
-            command=self.update_dns_list_from_github
-        )
-        update_dns_btn.pack(side="left")
-        
-        self.network_menu_window = None
 
     def show_settings_menu(self, event):
         """Displays the settings menu at the button's position."""
@@ -632,6 +714,13 @@ class IranDNSSwitcher:
         ctk.set_appearance_mode(theme)
         self.save_settings()
         self.log(f"Theme changed to: {theme}")
+
+    def change_language(self):
+        """Handles language switching."""
+        lang = self.language_var.get()
+        self.save_settings()
+        self.log(f"Language changed to: {lang}")
+        self.update_ui_texts()
 
     def toggle_network_menu(self):
         """Creates and shows or hides the network dropdown menu."""
@@ -651,7 +740,7 @@ class IranDNSSwitcher:
         menu_frame.pack()
 
         auto_rb = ctk.CTkRadioButton(
-            menu_frame, text="Auto-detect (Default)",
+            menu_frame, text=self.tr("Auto-detect (Default)"),
             variable=self.selected_interface_var,
             value="auto",
             command=lambda: self.select_interface_from_menu("Auto-detect (Default)")
@@ -663,7 +752,7 @@ class IranDNSSwitcher:
 
         interfaces = self.get_all_network_interfaces()
         if not interfaces:
-            no_if_label = ctk.CTkLabel(menu_frame, text="No interfaces found", text_color=self.colors['text_secondary'])
+            no_if_label = ctk.CTkLabel(menu_frame, text=self.tr("No interfaces found"), text_color=self.colors['text_secondary'])
             no_if_label.pack(anchor="w", padx=10, pady=5)
         else:
             for interface in interfaces:
@@ -707,7 +796,7 @@ class IranDNSSwitcher:
         dns_list = self.dns_servers.get(category_name, {})
         
         if not dns_list:
-            no_dns_label = ctk.CTkLabel(self.dns_scroll_frame, text=f"No DNS servers in '{category_name}' category.", font=self.font_info_text, text_color=self.colors['text_secondary'])
+            no_dns_label = ctk.CTkLabel(self.dns_scroll_frame, text=self.tr("No DNS servers in '{category}' category.", category=self.tr(category_name)), font=self.font_info_text, text_color=self.colors['text_secondary'])
             no_dns_label.pack(pady=20)
             return
 
@@ -804,7 +893,11 @@ class IranDNSSwitcher:
 
     def select_interface(self, interface_name):
         self.log(f"User selected network interface: {interface_name}")
-        self.status_label.configure(text=f"Network interface set to: {interface_name}", text_color=self.colors['text_secondary'])
+        if interface_name == "Auto-detect (Default)":
+            translated_interface = self.tr("Auto-detect (Default)")
+        else:
+            translated_interface = interface_name
+        self.status_label.configure(text=self.tr("Network interface set to: {interface}").format(interface=translated_interface), text_color=self.colors['text_secondary'])
 
     def show_log_window(self):
         if hasattr(self, 'log_window') and self.log_window.winfo_exists():
@@ -812,7 +905,7 @@ class IranDNSSwitcher:
             return
 
         self.log_window = ctk.CTkToplevel(self.root)
-        self.log_window.title("Application Log")
+        self.log_window.title(self.tr("Application Log"))
         self.log_window.geometry("700x500")
         self.log_window.attributes("-topmost", True)
         self.log_window.transient(self.root)
@@ -840,12 +933,12 @@ class IranDNSSwitcher:
             self.log("Log content copied to clipboard.")
             self.root.clipboard_clear()
             self.root.clipboard_append(log_textbox.get("1.0", "end"))
-            messagebox.showinfo("Copied", "Log content has been copied to the clipboard.", parent=self.log_window)
+            messagebox.showinfo(self.tr("Copied"), self.tr("Log content has been copied to the clipboard."), parent=self.log_window)
 
-        copy_btn = ctk.CTkButton(dialog_frame, text="Copy to Clipboard", command=copy_log, font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'])
+        copy_btn = ctk.CTkButton(dialog_frame, text=self.tr("Copy to Clipboard"), command=copy_log, font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'])
         copy_btn.grid(row=1, column=0, padx=5, pady=5)
         
-        close_btn = ctk.CTkButton(dialog_frame, text="Close", command=self.log_window.destroy, font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'])
+        close_btn = ctk.CTkButton(dialog_frame, text=self.tr("Close"), command=self.log_window.destroy, font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'])
         close_btn.grid(row=1, column=1, padx=5, pady=5)
 
     def check_for_updates(self):
@@ -862,8 +955,8 @@ class IranDNSSwitcher:
 
             if latest_version and latest_version > self.current_version:
                 self.log("New update is available.")
-                message = (f"A new version ({latest_version}) is available!\n\n" f"You are currently using version {self.current_version}.\n\n" "Would you like to go to the download page?")
-                if messagebox.askyesno("Update Available", message):
+                message = self.tr("A new version ({latest_version}) is available!\n\nYou are currently using version {current_version}.\n\nWould you like to go to the download page?").format(latest_version=latest_version, current_version=self.current_version)
+                if messagebox.askyesno(self.tr("Update Available"), message):
                     self.open_link(release_url)
             else:
                 self.log("Application is up to date.")
@@ -874,8 +967,8 @@ class IranDNSSwitcher:
 
     def update_dns_list_from_github(self):
         """Starts the process of updating the DNS list from GitHub in a new thread."""
-        if messagebox.askyesno("Update DNS List", "This will fetch the latest DNS list from GitHub. Your custom DNS entries will not be affected.\n\nDo you want to continue?"):
-            self.status_label.configure(text="Updating DNS list from GitHub...", text_color=self.colors['warning'])
+        if messagebox.askyesno(self.tr("Update DNS List"), self.tr("This will fetch the latest DNS list from GitHub. Your custom DNS entries will not be affected.\n\nDo you want to continue?")):
+            self.status_label.configure(text=self.tr("Updating DNS list from GitHub..."), text_color=self.colors['warning'])
             self.root.update_idletasks()
             update_thread = threading.Thread(target=self._update_dns_list_threaded, daemon=True)
             update_thread.start()
@@ -921,7 +1014,6 @@ class IranDNSSwitcher:
                         continue
 
             if new_iranian_dns or new_foreign_dns:
-                # Inject missing IPv6 for downloaded GitHub lists
                 self._inject_missing_ipv6(new_iranian_dns, "Iranian")
                 self._inject_missing_ipv6(new_foreign_dns, "Foreign")
                 self.dns_servers["Iranian"] = new_iranian_dns
@@ -929,23 +1021,23 @@ class IranDNSSwitcher:
                 self.save_main_dns_list()
                 self.root.after(0, self.refresh_dns_display_after_update)
             else:
-                self.root.after(0, lambda: messagebox.showerror("Update Error", "The fetched DNS list from GitHub is empty or has an invalid format."))
-                self.root.after(0, lambda: self.status_label.configure(text="✗ Error: Invalid DNS list format", text_color=self.colors['error']))
+                self.root.after(0, lambda: messagebox.showerror(self.tr("Update Error"), self.tr("The fetched DNS list from GitHub is empty or has an invalid format.")))
+                self.root.after(0, lambda: self.status_label.configure(text=self.tr("✗ Error: Invalid DNS list format"), text_color=self.colors['error']))
 
         except requests.exceptions.RequestException as e:
             self.log(f"Could not update DNS list (RequestException): {e}")
-            self.root.after(0, lambda: messagebox.showerror("Update Error", f"A network error occurred while fetching the DNS list:\n\n{e}"))
-            self.root.after(0, lambda: self.status_label.configure(text="✗ Error: Failed to fetch DNS list", text_color=self.colors['error']))
+            self.root.after(0, lambda: messagebox.showerror(self.tr("Update Error"), self.tr("A network error occurred while fetching the DNS list:\n\n{e}").format(e=e)))
+            self.root.after(0, lambda: self.status_label.configure(text=self.tr("✗ Error: Failed to fetch DNS list"), text_color=self.colors['error']))
         except Exception as e:
             self.log(f"An unexpected error occurred during DNS list update: {e}")
-            self.root.after(0, lambda: messagebox.showerror("Update Error", f"An unexpected error occurred:\n\n{e}"))
-            self.root.after(0, lambda: self.status_label.configure(text="✗ Error: Unexpected update failure", text_color=self.colors['error']))
+            self.root.after(0, lambda: messagebox.showerror(self.tr("Update Error"), self.tr("An unexpected error occurred:\n\n{e}").format(e=e)))
+            self.root.after(0, lambda: self.status_label.configure(text=self.tr("✗ Error: Unexpected update failure"), text_color=self.colors['error']))
             
     def refresh_dns_display_after_update(self):
         """Refreshes the UI after a successful DNS list update."""
         self.display_dns_for_category(self.current_category)
-        self.status_label.configure(text="✓ DNS list updated successfully!", text_color=self.colors['success'])
-        messagebox.showinfo("Update Complete", "The DNS list has been successfully updated from GitHub.")
+        self.status_label.configure(text=self.tr("✓ DNS list updated successfully!"), text_color=self.colors['success'])
+        messagebox.showinfo(self.tr("Update Complete"), self.tr("The DNS list has been successfully updated from GitHub."))
 
     def show_delete_menu(self, event, dns_name):
         """Creates and displays a right-click context menu to delete a custom DNS."""
@@ -953,7 +1045,7 @@ class IranDNSSwitcher:
         menu = tkinter.Menu(self.root, tearoff=0, bg=self.colors['frame_bg'][1],
                              fg=self.colors['text_primary'][1])
         
-        menu.add_command(label=f"Delete '{dns_name}'",
+        menu.add_command(label=self.tr("Delete '{name}'").format(name=dns_name),
                           command=lambda: self.delete_custom_dns(dns_name))
         
         try:
@@ -999,7 +1091,7 @@ class IranDNSSwitcher:
             return float('inf'), "Error"
 
     def ping_all_dns(self):
-        self.status_label.configure(text="Pinging all DNS servers...",
+        self.status_label.configure(text=self.tr("Pinging all DNS servers..."),
                                      text_color=self.colors['warning'])
         self.root.update_idletasks()
         ping_all_thread = threading.Thread(target=self._ping_all_dns_threaded,
@@ -1014,8 +1106,12 @@ class IranDNSSwitcher:
                 if not ips or not ips[0]:
                     continue
                 primary_ip = ips[0]
-                self.root.after(0, lambda n=name: self.status_label.configure(text=f"Pinging {n}..."))
+                self.root.after(0, lambda n=name: self.status_label.configure(text=self.tr("Pinging {name}...").format(name=n)))
                 latency, display_string = self.ping_dns_server(primary_ip)
+                
+                if display_string in ["Timeout", "Failed", "Error"]:
+                    display_string = self.tr(display_string)
+
                 ping_results.append({
                     'name': name, 'ip': primary_ip,
                     'latency': latency, 'display': display_string
@@ -1029,8 +1125,8 @@ class IranDNSSwitcher:
             self.all_ping_window.destroy()
 
         self.all_ping_window = ctk.CTkToplevel(self.root)
-        self.all_ping_window.title("All DNS Ping Results")
-        self.all_ping_window.geometry("450x450") # Increased height for the new button
+        self.all_ping_window.title(self.tr("All DNS Ping Results"))
+        self.all_ping_window.geometry("450x450") 
         self.all_ping_window.resizable(False, False)
         self.all_ping_window.attributes("-topmost", True)
         self.all_ping_window.transient(self.root)
@@ -1044,7 +1140,7 @@ class IranDNSSwitcher:
         dialog_frame = ctk.CTkFrame(self.all_ping_window, fg_color=self.colors['frame_bg'])
         dialog_frame.pack(expand=True, fill="both", padx=20, pady=20)
 
-        ctk.CTkLabel(dialog_frame, text="Ping Results (Sorted by Latency):", 
+        ctk.CTkLabel(dialog_frame, text=self.tr("Ping Results (Sorted by Latency):"), 
                      font=self.font_section_title,
                        text_color=self.colors['text_primary']).pack(anchor='w', pady=(0,10))
 
@@ -1059,16 +1155,16 @@ class IranDNSSwitcher:
         results_frame.columnconfigure(1, weight=1)
         results_frame.columnconfigure(2, weight=1)
 
-        ctk.CTkLabel(results_frame, text="DNS Name",
+        ctk.CTkLabel(results_frame, text=self.tr("DNS Name"),
                       font=header_font,
                         text_color=self.colors['text_secondary']).grid(row=0, column=0, padx=5, pady=2, sticky='w')
         
-        ctk.CTkLabel(results_frame, text="Primary IP",
+        ctk.CTkLabel(results_frame, text=self.tr("Primary IP"),
                       font=header_font,
                         text_color=self.colors['text_secondary']).grid(row=0, column=1, padx=5, pady=2, sticky='w')
         
         ctk.CTkLabel(results_frame,
-                      text="Latency",
+                      text=self.tr("Latency"),
                       font=header_font,
                         text_color=self.colors['text_secondary']).grid(row=0, column=2, padx=5, pady=2, sticky='w')
 
@@ -1096,7 +1192,7 @@ class IranDNSSwitcher:
             fastest_dns = results[0]
             connect_btn = ctk.CTkButton(
                 button_frame,
-                text=f"Connect to Fastest: {fastest_dns['name']}",
+                text=self.tr("Connect to Fastest: {name}").format(name=fastest_dns['name']),
                 command=lambda: self.connect_to_fastest_dns(fastest_dns),
                 font=self.font_button_main,
                 fg_color=self.colors['success'],
@@ -1105,7 +1201,7 @@ class IranDNSSwitcher:
             connect_btn.pack(side="left", padx=(0, 10))
 
         close_btn = ctk.CTkButton(
-            button_frame, text="Close",
+            button_frame, text=self.tr("Close"),
               command=self.all_ping_window.destroy,
             font=self.font_button_main,
               fg_color=self.colors['secondary_accent_gray'],
@@ -1113,7 +1209,7 @@ class IranDNSSwitcher:
         )
         close_btn.pack(side="left")
 
-        self.status_label.configure(text="Ping test complete. Results are ready.",
+        self.status_label.configure(text=self.tr("Ping test complete. Results are ready."),
                                      text_color=self.colors['success'])
 
     def connect_to_fastest_dns(self, fastest_dns_info):
@@ -1139,10 +1235,10 @@ class IranDNSSwitcher:
             self._apply_dns_settings(dns_name, dns_servers_list)
         else:
             self.log(f"Error: Could not find the DNS server details for '{dns_name}' in self.dns_servers dictionary.")
-            messagebox.showerror("Error", f"An error occurred. Could not find the details for '{dns_name}' to apply the settings.", parent=self.root)
+            messagebox.showerror(self.tr("Error"), self.tr("An error occurred. Could not find the details for '{name}' to apply the settings.").format(name=dns_name), parent=self.root)
 
     def ping_current_dns(self):
-        self.status_label.configure(text="Pinging current DNS...",
+        self.status_label.configure(text=self.tr("Pinging current DNS..."),
                                      text_color=self.colors['warning'])
         self.root.update_idletasks()
         ping_thread = threading.Thread(target=self._ping_current_dns_threaded, daemon=True)
@@ -1185,24 +1281,26 @@ class IranDNSSwitcher:
         current_dns_ips = self._get_current_dns_ips()
         
         if not current_dns_ips:
-            self.root.after(0, lambda: messagebox.showwarning("Ping Failed",
-                                                               "Could not determine the current DNS server to ping."))
-            self.root.after(0, lambda: self.status_label.configure(text="Ping failed: No current DNS found.",
+            self.root.after(0, lambda: messagebox.showwarning(self.tr("Ping Failed"),
+                                                               self.tr("Could not determine the current DNS server to ping.")))
+            self.root.after(0, lambda: self.status_label.configure(text=self.tr("Ping failed: No current DNS found."),
                                                                     text_color=self.colors['error']))
             return
 
         primary_dns = current_dns_ips[0]
         latency, display_string = self.ping_dns_server(primary_dns)
         
-        message = f"Ping result for {primary_dns}:\n\n{display_string}"
-        self.root.after(0, lambda: messagebox.showinfo("Current DNS Ping", message))
+        if display_string in ["Timeout", "Failed", "Error"]:
+            display_string = self.tr(display_string)
+        
+        message = self.tr("Ping result for {ip}:\n\n{display}").format(ip=primary_dns, display=display_string)
+        self.root.after(0, lambda: messagebox.showinfo(self.tr("Current DNS Ping"), message))
         
         status_color = self.colors['success'] if "ms" in display_string else self.colors['error']
-        status_text = f"Ping for {primary_dns}: {display_string}"
+        status_text = self.tr("Ping for {ip}: {display}").format(ip=primary_dns, display=display_string)
         self.root.after(0, lambda: self.status_label.configure(text=status_text, text_color=status_color))
 
     def lighten_hex_color(self, hex_color, factor=0.2):
-        # Support logic so CTk tuples dont crash string methods
         if isinstance(hex_color, tuple):
             mode = ctk.get_appearance_mode()
             hex_color = hex_color[1] if mode == "Dark" else hex_color[0]
@@ -1222,8 +1320,8 @@ class IranDNSSwitcher:
             webbrowser.open_new(url)
         except Exception as e:
             self.log(f"Failed to open link {url}: {e}")
-            messagebox.showerror("Error",
-                                  f"Failed to open link:\n{str(e)}")
+            messagebox.showerror(self.tr("Error"),
+                                  self.tr("Failed to open link:\n{e}").format(e=str(e)))
 
     def is_admin(self):
         try:
@@ -1242,8 +1340,8 @@ class IranDNSSwitcher:
             )
         except Exception as e:
             self.log(f"Failed to run as administrator: {e}")
-            messagebox.showerror("Error",
-                                  "Failed to run as administrator")
+            messagebox.showerror(self.tr("Error"),
+                                  self.tr("Failed to run as administrator"))
     
     def get_network_interface(self):
         selected_interface = self.selected_interface_var.get()
@@ -1276,8 +1374,8 @@ class IranDNSSwitcher:
             
             if not active_interface_ip:
                 self.log("Could not determine the default route interface.")
-                messagebox.showwarning("Network Error",
-                                        "Could not determine the default route interface. Please check your internet connection.")
+                messagebox.showwarning(self.tr("Network Error"),
+                                        self.tr("Could not determine the default route interface. Please check your internet connection."))
                 return None
 
             cmd_config = 'netsh interface ip show config'
@@ -1306,12 +1404,12 @@ class IranDNSSwitcher:
 
         except subprocess.TimeoutExpired as e:
             self.log(f"A network command timed out: {e}")
-            messagebox.showerror("Timeout",
-                                  "A network command timed out. Please try again.")
+            messagebox.showerror(self.tr("Timeout"),
+                                  self.tr("A network command timed out. Please try again."))
             return None
         except Exception as e:
             self.log(f"An unexpected error occurred while detecting the network interface: {e}")
-            messagebox.showerror("Network Interface Error",
+            messagebox.showerror(self.tr("Network Interface Error"),
                                   f"An unexpected error occurred while detecting the network interface: {e}")
             return None
     
@@ -1341,9 +1439,9 @@ class IranDNSSwitcher:
 
         target = widget._entry if hasattr(widget, '_entry') else widget
 
-        menu.add_command(label="Cut", command=lambda: target.event_generate("<<Cut>>"))
-        menu.add_command(label="Copy", command=lambda: target.event_generate("<<Copy>>"))
-        menu.add_command(label="Paste", command=lambda: target.event_generate("<<Paste>>"))
+        menu.add_command(label=self.tr("Cut"), command=lambda: target.event_generate("<<Cut>>"))
+        menu.add_command(label=self.tr("Copy"), command=lambda: target.event_generate("<<Copy>>"))
+        menu.add_command(label=self.tr("Paste"), command=lambda: target.event_generate("<<Paste>>"))
 
         def show_menu(event):
             target.focus_set()
@@ -1363,8 +1461,8 @@ class IranDNSSwitcher:
             return
 
         self.add_dns_window = ctk.CTkToplevel(self.root)
-        self.add_dns_window.title("Manage Custom DNS")
-        self.add_dns_window.geometry("400x480") # Increased height for IPv6 inputs
+        self.add_dns_window.title(self.tr("Manage Custom DNS"))
+        self.add_dns_window.geometry("400x480") 
         self.add_dns_window.resizable(False, False)
         self.add_dns_window.attributes("-topmost", True)
         self.add_dns_window.transient(self.root)
@@ -1382,13 +1480,13 @@ class IranDNSSwitcher:
                              padx=20,
                                pady=20)
 
-        ctk.CTkLabel(dialog_frame, text="Enter Custom DNS Servers:", 
+        ctk.CTkLabel(dialog_frame, text=self.tr("Enter Custom DNS Servers:"), 
                      font=self.font_section_title,
                        text_color=self.colors['text_primary']).pack(anchor='w', pady=(0,15))
 
         name_entry = ctk.CTkEntry(
             dialog_frame,
-            placeholder_text="Custom DNS Name (e.g., My DNS)",
+            placeholder_text=self.tr("Custom DNS Name (e.g., My DNS)"),
             font=self.font_info_text,
             height=35
         )
@@ -1397,7 +1495,7 @@ class IranDNSSwitcher:
 
         primary_entry = ctk.CTkEntry(
             dialog_frame,
-            placeholder_text="Primary IPv4 (e.g., 8.8.8.8)",
+            placeholder_text=self.tr("Primary IPv4 (e.g., 8.8.8.8)"),
             font=self.font_info_text,
             height=35
         )
@@ -1406,17 +1504,16 @@ class IranDNSSwitcher:
 
         secondary_entry = ctk.CTkEntry(
             dialog_frame,
-            placeholder_text="Secondary IPv4 (Optional)",
+            placeholder_text=self.tr("Secondary IPv4 (Optional)"),
             font=self.font_info_text,
             height=35
         )
         secondary_entry.pack(fill='x', pady=(0,10))
         self._add_context_menu(secondary_entry)
 
-        # Added IPv6 Inputs
         primary_ipv6_entry = ctk.CTkEntry(
             dialog_frame,
-            placeholder_text="Primary IPv6 (Optional)",
+            placeholder_text=self.tr("Primary IPv6 (Optional)"),
             font=self.font_info_text,
             height=35
         )
@@ -1425,7 +1522,7 @@ class IranDNSSwitcher:
 
         secondary_ipv6_entry = ctk.CTkEntry(
             dialog_frame,
-            placeholder_text="Secondary IPv6 (Optional)",
+            placeholder_text=self.tr("Secondary IPv6 (Optional)"),
             font=self.font_info_text,
             height=35
         )
@@ -1433,7 +1530,7 @@ class IranDNSSwitcher:
         self._add_context_menu(secondary_ipv6_entry)
 
         save_btn = ctk.CTkButton(
-            dialog_frame, text="Save DNS",
+            dialog_frame, text=self.tr("Save DNS"),
             command=lambda: self.add_custom_dns(name_entry.get(),
                                                  primary_entry.get(),
                                                    secondary_entry.get(),
@@ -1448,21 +1545,21 @@ class IranDNSSwitcher:
         separator = ctk.CTkFrame(dialog_frame, height=2, fg_color=self.colors['secondary_accent_gray'])
         separator.pack(fill='x', pady=(0, 15))
         
-        backup_label = ctk.CTkLabel(dialog_frame, text="Backup & Restore:", font=self.font_info_text, text_color=self.colors['text_secondary'])
+        backup_label = ctk.CTkLabel(dialog_frame, text=self.tr("Backup & Restore:"), font=self.font_info_text, text_color=self.colors['text_secondary'])
         backup_label.pack(anchor='w', pady=(0, 5))
         
         actions_frame = ctk.CTkFrame(dialog_frame, fg_color="transparent")
         actions_frame.pack(fill='x')
         
         export_btn = ctk.CTkButton(
-            actions_frame, text="Export JSON", 
+            actions_frame, text=self.tr("Export JSON"), 
             command=self.export_custom_dns, font=self.font_button_main, 
             fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover']
         )
         export_btn.pack(side="left", expand=True, padx=(0, 5))
         
         import_btn = ctk.CTkButton(
-            actions_frame, text="Import JSON", 
+            actions_frame, text=self.tr("Import JSON"), 
             command=self.import_custom_dns, font=self.font_button_main, 
             fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover']
         )
@@ -1471,14 +1568,14 @@ class IranDNSSwitcher:
     def export_custom_dns(self):
         """Exports custom DNS servers to a JSON file."""
         if not self.dns_servers.get("Custom"):
-            messagebox.showinfo("Export", "No custom DNS servers found to export.", parent=self.add_dns_window)
+            messagebox.showinfo(self.tr("Export"), self.tr("No custom DNS servers found to export."), parent=self.add_dns_window)
             return
 
         filepath = filedialog.asksaveasfilename(
             parent=self.add_dns_window,
             defaultextension=".json",
             filetypes=[("JSON Files", "*.json")],
-            title="Export Custom DNS",
+            title=self.tr("Export Custom DNS"),
             initialfile="IranDNSSwitcher_Backup.json"
         )
 
@@ -1487,17 +1584,17 @@ class IranDNSSwitcher:
                 with open(filepath, 'w', encoding='utf-8') as f:
                     json.dump(self.dns_servers["Custom"], f, indent=4)
                 self.log(f"Exported custom DNS to: {filepath}")
-                messagebox.showinfo("Export Successful", f"Custom DNS successfully exported to:\n{filepath}", parent=self.add_dns_window)
+                messagebox.showinfo(self.tr("Export Successful"), self.tr("Custom DNS successfully exported to:\n{path}").format(path=filepath), parent=self.add_dns_window)
             except Exception as e:
                 self.log(f"Export failed: {e}")
-                messagebox.showerror("Export Failed", f"Failed to export custom DNS:\n{e}", parent=self.add_dns_window)
+                messagebox.showerror(self.tr("Export Failed"), self.tr("Failed to export custom DNS:\n{e}").format(e=e), parent=self.add_dns_window)
 
     def import_custom_dns(self):
         """Imports custom DNS servers from a JSON file."""
         filepath = filedialog.askopenfilename(
             parent=self.add_dns_window,
             filetypes=[("JSON Files", "*.json")],
-            title="Import Custom DNS"
+            title=self.tr("Import Custom DNS")
         )
 
         if filepath:
@@ -1520,13 +1617,13 @@ class IranDNSSwitcher:
                     self.save_custom_dns()
                     if self.current_category == "Custom":
                         self.display_dns_for_category("Custom")
-                    messagebox.showinfo("Import Successful", f"Successfully imported {added_count} new DNS entries.", parent=self.add_dns_window)
+                    messagebox.showinfo(self.tr("Import Successful"), self.tr("Successfully imported {count} new DNS entries.").format(count=added_count), parent=self.add_dns_window)
                 else:
-                    messagebox.showinfo("Import Info", "No new DNS entries were found. All entries in the file already exist.", parent=self.add_dns_window)
+                    messagebox.showinfo(self.tr("Import Info"), self.tr("No new DNS entries were found. All entries in the file already exist."), parent=self.add_dns_window)
 
             except Exception as e:
                 self.log(f"Import failed: {e}")
-                messagebox.showerror("Import Failed", f"Failed to import custom DNS. Ensure it's a valid JSON file.\nError: {e}", parent=self.add_dns_window)
+                messagebox.showerror(self.tr("Import Failed"), self.tr("Failed to import custom DNS. Ensure it's a valid JSON file.\nError: {e}").format(e=e), parent=self.add_dns_window)
 
     def add_custom_dns(self, custom_name, primary_dns, secondary_dns, primary_ipv6="", secondary_ipv6=""):
         """Validates and adds the new custom DNS to the list."""
@@ -1537,32 +1634,32 @@ class IranDNSSwitcher:
         secondary_ipv6 = secondary_ipv6.strip()
 
         if not primary_dns:
-            messagebox.showerror("Input Error",
-                                  "Primary IPv4 field cannot be empty.",
+            messagebox.showerror(self.tr("Input Error"),
+                                  self.tr("Primary IPv4 field cannot be empty."),
                                     parent=self.add_dns_window)
             return
 
         if not self.is_valid_ip(primary_dns):
-            messagebox.showerror("Invalid IP",
-                                  f"The primary IPv4 address '{primary_dns}' is not valid.",
+            messagebox.showerror(self.tr("Invalid IP"),
+                                  self.tr("The primary IPv4 address '{ip}' is not valid.").format(ip=primary_dns),
                                     parent=self.add_dns_window)
             return
         
         if secondary_dns and not self.is_valid_ip(secondary_dns):
-            messagebox.showerror("Invalid IP",
-                                  f"The secondary IPv4 address '{secondary_dns}' is not valid.",
+            messagebox.showerror(self.tr("Invalid IP"),
+                                  self.tr("The secondary IPv4 address '{ip}' is not valid.").format(ip=secondary_dns),
                                     parent=self.add_dns_window)
             return
             
         if primary_ipv6 and not self.is_valid_ipv6(primary_ipv6):
-            messagebox.showerror("Invalid IP",
-                                  f"The primary IPv6 address '{primary_ipv6}' is not valid.",
+            messagebox.showerror(self.tr("Invalid IP"),
+                                  self.tr("The primary IPv6 address '{ip}' is not valid.").format(ip=primary_ipv6),
                                     parent=self.add_dns_window)
             return
             
         if secondary_ipv6 and not self.is_valid_ipv6(secondary_ipv6):
-            messagebox.showerror("Invalid IP",
-                                  f"The secondary IPv6 address '{secondary_ipv6}' is not valid.",
+            messagebox.showerror(self.tr("Invalid IP"),
+                                  self.tr("The secondary IPv6 address '{ip}' is not valid.").format(ip=secondary_ipv6),
                                     parent=self.add_dns_window)
             return
         
@@ -1570,8 +1667,8 @@ class IranDNSSwitcher:
             custom_name = f"Custom ({primary_dns})"
 
         if custom_name in self.dns_servers["Custom"]:
-            messagebox.showwarning("DNS Exists",
-                                    f"A DNS with the name '{custom_name}' already exists in Custom DNS.",
+            messagebox.showwarning(self.tr("DNS Exists"),
+                                    self.tr("A DNS with the name '{name}' already exists in Custom DNS.").format(name=custom_name),
                                       parent=self.add_dns_window)
             return
 
@@ -1581,13 +1678,13 @@ class IranDNSSwitcher:
         self.log(f"Custom DNS '{custom_name}' added with values: {primary_dns}, {secondary_dns}, {primary_ipv6}, {secondary_ipv6}")
         
         self.add_dns_window.destroy()
-        messagebox.showinfo("Success",
-                             f"DNS '{custom_name}' has been added to the list.")
+        messagebox.showinfo(self.tr("Success"),
+                             self.tr("DNS '{name}' has been added to the list.").format(name=custom_name))
 
     def delete_custom_dns(self, dns_name):
         """Deletes a custom DNS entry."""
-        if messagebox.askyesno("Confirm Deletion",
-                                f"Are you sure you want to delete '{dns_name}'?"):
+        if messagebox.askyesno(self.tr("Confirm Deletion"),
+                                self.tr("Are you sure you want to delete '{name}'?").format(name=dns_name)):
             if dns_name in self.dns_servers["Custom"]:
                 del self.dns_servers["Custom"][dns_name]
                 self.save_custom_dns()
@@ -1616,7 +1713,6 @@ class IranDNSSwitcher:
                     if "Iranian" in loaded_dns and "Foreign" in loaded_dns:
                         self.dns_servers["Iranian"] = loaded_dns["Iranian"]
                         self.dns_servers["Foreign"] = loaded_dns["Foreign"]
-                        # Inject missing IPv6 from defaults (fixes old cached files without IPv6)
                         self._inject_missing_ipv6(self.dns_servers["Iranian"], "Iranian")
                         self._inject_missing_ipv6(self.dns_servers["Foreign"], "Foreign")
                         self.log(f"Successfully loaded main DNS list from {self.dns_list_file}")
@@ -1682,8 +1778,8 @@ class IranDNSSwitcher:
         """Core logic to apply DNS settings for both predefined and custom DNS."""
         if not self.is_admin():
             response = messagebox.askyesno(
-                "Administrator Access Required",
-                "This application needs administrator privileges to change DNS settings.\n\nWould you like to restart as administrator?"
+                self.tr("Administrator Access Required"),
+                self.tr("This application needs administrator privileges to change DNS settings.\n\nWould you like to restart as administrator?")
             )
 
             if response:
@@ -1695,13 +1791,13 @@ class IranDNSSwitcher:
         try:
             interface_name = self.get_network_interface()
             if not interface_name:
-                self.status_label.configure(text="✗ Error: No active network interface found",
+                self.status_label.configure(text=self.tr("✗ Error: No active network interface found"),
                                              text_color=self.colors['error'])
                 return
 
             self.log(f"Attempting to change DNS to '{dns_name}' for interface '{interface_name}'")
             self.status_label.configure(
-                text=f"Changing to {dns_name} for '{interface_name}'...",
+                text=self.tr("Changing to {name} for '{interface}'...").format(name=dns_name, interface=interface_name),
                 text_color=self.colors['warning']
             )
 
@@ -1709,7 +1805,6 @@ class IranDNSSwitcher:
             
             cli_encoding = 'oem'
             
-            # Safe unpack supporting lists of length 1 to 4
             primary_ipv4 = dns_servers_list[0] if len(dns_servers_list) > 0 else ""
             secondary_ipv4 = dns_servers_list[1] if len(dns_servers_list) > 1 else ""
             primary_ipv6 = dns_servers_list[2] if len(dns_servers_list) > 2 else ""
@@ -1723,132 +1818,65 @@ class IranDNSSwitcher:
                 cmd_set_dhcp = f'netsh interface ipv4 set dns name="{interface_name}" source=dhcp'
                 
                 self.log(f"Executing command: {cmd_clear_static}")
-                subprocess.run(cmd_clear_static,
-                                shell=True,
-                                  check=False,
-                                    capture_output=True,
-                                      text=True,
-                                        encoding=cli_encoding,
-                                          errors='ignore')
+                subprocess.run(cmd_clear_static, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
                 self.log(f"Executing command: {cmd_set_dhcp}")
-                subprocess.run(cmd_set_dhcp,
-                                shell=True, 
-                                check=False,
-                                  capture_output=True,
-                                    text=True,
-                                      encoding=cli_encoding,
-                                        errors='ignore')
+                subprocess.run(cmd_set_dhcp, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                                         
                 # Clear IPv6 static and set DHCP
                 cmd_clear_v6 = f'netsh interface ipv6 delete dnsserver "{interface_name}" all'
                 cmd_set_dhcp_v6 = f'netsh interface ipv6 set dns name="{interface_name}" source=dhcp'
                 
                 self.log(f"Executing command: {cmd_clear_v6}")
-                subprocess.run(cmd_clear_v6,
-                                shell=True,
-                                  check=False,
-                                    capture_output=True,
-                                      text=True,
-                                        encoding=cli_encoding,
-                                          errors='ignore')
+                subprocess.run(cmd_clear_v6, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
                 self.log(f"Executing command: {cmd_set_dhcp_v6}")
-                subprocess.run(cmd_set_dhcp_v6,
-                                shell=True, 
-                                check=False,
-                                  capture_output=True,
-                                    text=True,
-                                      encoding=cli_encoding,
-                                        errors='ignore')
+                subprocess.run(cmd_set_dhcp_v6, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
 
                 self.status_label.configure(
-                    text=f"✓ DNS for '{interface_name}' set to Default (DHCP)", 
+                    text=self.tr("✓ DNS for '{interface}' set to Default (DHCP)").format(interface=interface_name), 
                     text_color=self.colors['success']
                 )
                 self.log(f"DNS for '{interface_name}' successfully set to Default (DHCP).")
                 messagebox.showinfo(
-                    "Success", 
-                    f"DNS successfully set to Default (DHCP) for interface '{interface_name}'"
+                    self.tr("Success"), 
+                    self.tr("DNS successfully set to Default (DHCP) for interface '{interface}'").format(interface=interface_name)
                 )
 
             else:
                 # 1. First, clear and apply IPv4
                 cmd_clear_static = f'netsh interface ipv4 delete dnsserver "{interface_name}" all'
-                subprocess.run(cmd_clear_static,
-                                shell=True,
-                                  check=False,
-                                    capture_output=True,
-                                      text=True,
-                                        encoding=cli_encoding,
-                                          errors='ignore')
+                subprocess.run(cmd_clear_static, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                                           
                 cmd_set_primary = f'netsh interface ipv4 set dns name="{interface_name}" static {primary_ipv4}'
                 self.log(f"Executing command: {cmd_set_primary}")
-                subprocess.run(cmd_set_primary,
-                                shell=True,
-                                 check=False,
-                                  capture_output=True,
-                                   text=True,
-                                    encoding=cli_encoding,
-                                     errors='ignore')
+                subprocess.run(cmd_set_primary, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
                 if secondary_ipv4:
                     cmd_add_secondary = f'netsh interface ipv4 add dns name="{interface_name}" addr={secondary_ipv4} index=2'
                     self.log(f"Executing command: {cmd_add_secondary}")
-                    subprocess.run(cmd_add_secondary,
-                                    shell=True,
-                                      check=False,
-                                        capture_output=True,
-                                          text=True,
-                                            encoding=cli_encoding,
-                                              errors='ignore')
+                    subprocess.run(cmd_add_secondary, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
                 # 2. Handling IPv6 with Anti-Leak
                 if is_ipv6_enabled:
                     # Clear any old v6 first
                     cmd_clear_v6 = f'netsh interface ipv6 delete dnsserver "{interface_name}" all'
-                    subprocess.run(cmd_clear_v6,
-                                    shell=True,
-                                     check=False,
-                                      capture_output=True,
-                                       text=True,
-                                        encoding=cli_encoding,
-                                         errors='ignore')
+                    subprocess.run(cmd_clear_v6, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                     
                     if primary_ipv6:
                         cmd_set_primary_v6 = f'netsh interface ipv6 set dns name="{interface_name}" static {primary_ipv6}'
                         self.log(f"Executing command: {cmd_set_primary_v6}")
-                        subprocess.run(cmd_set_primary_v6,
-                                        shell=True,
-                                         check=False,
-                                          capture_output=True,
-                                           text=True,
-                                            encoding=cli_encoding,
-                                             errors='ignore')
+                        subprocess.run(cmd_set_primary_v6, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                         if secondary_ipv6:
                             cmd_add_secondary_v6 = f'netsh interface ipv6 add dns name="{interface_name}" addr={secondary_ipv6} index=2'
                             self.log(f"Executing command: {cmd_add_secondary_v6}")
-                            subprocess.run(cmd_add_secondary_v6,
-                                            shell=True,
-                                             check=False,
-                                              capture_output=True,
-                                               text=True,
-                                                encoding=cli_encoding,
-                                                 errors='ignore')
+                            subprocess.run(cmd_add_secondary_v6, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                     else:
-                        # ANTI-LEAK: Set IPv6 to loopback so windows doesn't fall back to ISP's IPv6
                         cmd_anti_leak_v6 = f'netsh interface ipv6 set dns name="{interface_name}" static ::1'
                         self.log(f"Executing command (Anti-Leak): {cmd_anti_leak_v6}")
-                        subprocess.run(cmd_anti_leak_v6,
-                                        shell=True,
-                                         check=False,
-                                          capture_output=True,
-                                           text=True,
-                                            encoding=cli_encoding,
-                                             errors='ignore')
+                        subprocess.run(cmd_anti_leak_v6, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 else:
-                     pass # If disabled, don't touch IPv6 at all
+                     pass 
                      
                 # 3. DoH Handling
                 if self.doh_var.get():
@@ -1865,21 +1893,15 @@ class IranDNSSwitcher:
                 # 4. Flush the DNS cache
                 cmd_flush_dns = 'ipconfig /flushdns'
                 self.log(f"Executing command: {cmd_flush_dns}")
-                subprocess.run(cmd_flush_dns,
-                                shell=True,
-                                  check=False,
-                                    capture_output=True,
-                                      text=True,
-                                        encoding=cli_encoding,
-                                          errors='ignore')
+                subprocess.run(cmd_flush_dns, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
                 self.status_label.configure(
-                    text=f"✓ DNS for '{interface_name}' changed to {dns_name}", 
+                    text=self.tr("✓ DNS for '{interface}' changed to {name}").format(interface=interface_name, name=dns_name), 
                     text_color=self.colors['success']
                 )
                 self.log(f"DNS for '{interface_name}' successfully changed to {dns_name}.")
                 
-                success_message = f"DNS successfully changed to {dns_name} for interface '{interface_name}'\n\nIPv4: {primary_ipv4}"
+                success_message = self.tr("DNS successfully changed to {name} for interface '{interface}'\n\nIPv4: {ip}").format(name=dns_name, interface=interface_name, ip=primary_ipv4)
                 if secondary_ipv4: 
                     success_message += f", {secondary_ipv4}"
                 
@@ -1888,17 +1910,17 @@ class IranDNSSwitcher:
                     if secondary_ipv6: 
                         success_message += f", {secondary_ipv6}"
                 elif is_ipv6_enabled and not primary_ipv6:
-                    success_message += f"\n(IPv6 Blocked to prevent DNS Leak)"
+                    success_message += self.tr("\n(IPv6 Blocked to prevent DNS Leak)")
                 
                 if self.doh_var.get():
-                    success_message += f"\n\n🔒 DoH Enforced (Encrypted Connection)"
+                    success_message += self.tr("\n\n🔒 DoH Enforced (Encrypted Connection)")
                     
-                messagebox.showinfo("Success", success_message)
+                messagebox.showinfo(self.tr("Success"), success_message)
                 
         except Exception as e:
             self.log(f"An unexpected error occurred during DNS change: {e}")
-            messagebox.showerror("Error", f"An unexpected error occurred during DNS change:\n{str(e)}")
-            self.status_label.configure(text="✗ Unexpected error during DNS change",
+            messagebox.showerror(self.tr("Error"), self.tr("An unexpected error occurred during DNS change:\n{e}").format(e=str(e)))
+            self.status_label.configure(text=self.tr("✗ Unexpected error during DNS change"),
                                          text_color=self.colors['error'])
     
     def show_current_dns(self):
@@ -1952,37 +1974,37 @@ class IranDNSSwitcher:
                 except Exception as e:
                     self.log(f"Failed to check DoH status: {e}")
 
-            dns_info = f"Current DNS Servers for '{interface_name}':\n\n"
+            dns_info = self.tr("Current DNS Servers for '{interface}':\n\n").format(interface=interface_name)
 
             if ipv4_servers:
-                dns_info += "IPv4 Servers:\n"
+                dns_info += self.tr("IPv4 Servers:\n")
                 for i, ip in enumerate(ipv4_servers):
-                    label = "Primary" if i == 0 else "Secondary" if i == 1 else f"DNS {i+1}"
+                    label = self.tr("Primary") if i == 0 else self.tr("Secondary") if i == 1 else f"DNS {i+1}"
                     doh_mark = " 🔒 (DoH)" if ip in doh_ips else ""
-                    dns_info += f"  • {label}: {ip}{doh_mark}\n"
+                    dns_info += self.tr("  • {label}: {ip}{doh}\n").format(label=label, ip=ip, doh=doh_mark)
                 dns_info += "\n"
 
             if ipv6_servers:
-                dns_info += "IPv6 Servers:\n"
+                dns_info += self.tr("IPv6 Servers:\n")
                 for i, ip in enumerate(ipv6_servers):
-                    label = "Primary" if i == 0 else "Secondary" if i == 1 else f"DNS {i+1}"
+                    label = self.tr("Primary") if i == 0 else self.tr("Secondary") if i == 1 else f"DNS {i+1}"
                     doh_mark = " 🔒 (DoH)" if ip in doh_ips else ""
-                    dns_info += f"  • {label}: {ip}{doh_mark}\n"
+                    dns_info += self.tr("  • {label}: {ip}{doh}\n").format(label=label, ip=ip, doh=doh_mark)
                 dns_info += "\n"
 
             if not ipv4_servers and not ipv6_servers:
-                dns_info += "DNS servers configured automatically through DHCP or no static DNS specified.\n\n"
+                dns_info += self.tr("DNS servers configured automatically through DHCP or no static DNS specified.\n\n")
 
             if doh_ips:
                  dns_info += "-" * 30 + "\n"
-                 dns_info += "🔒 DoH Status: Active (Encrypted HTTPS connection)\n"
+                 dns_info += self.tr("🔒 DoH Status: Active (Encrypted HTTPS connection)\n")
 
             self.log("Showing current DNS info.")
-            messagebox.showinfo("Current DNS Status", dns_info)
+            messagebox.showinfo(self.tr("Current DNS Status"), dns_info)
 
         except Exception as e:
             self.log(f"Failed to get DNS information: {e}")
-            messagebox.showerror("Error", f"Failed to get DNS information:\n{str(e)}")
+            messagebox.showerror(self.tr("Error"), self.tr("Failed to get DNS information:\n{e}").format(e=str(e)))
 
 
     # ==========================================
@@ -1994,7 +2016,7 @@ class IranDNSSwitcher:
         if self.tray_var.get():
             self.hide_window_to_tray()
         else:
-            if messagebox.askyesno("Confirm Exit", "Are you sure you want to exit?"):
+            if messagebox.askyesno(self.tr("Confirm Exit"), self.tr("Are you sure you want to exit?")):
                 if self.tray_icon:
                     self.tray_icon.stop()
                     self.tray_icon = None
@@ -2015,20 +2037,24 @@ class IranDNSSwitcher:
                     self.ipv6_var.set(settings.get("enable_ipv6", False))
                     self.doh_var.set(settings.get("enable_doh", False))
                     
-                    # --- NEW: Loading theme settings ---
                     saved_theme = settings.get("theme", "Dark")
                     self.theme_var.set(saved_theme)
                     ctk.set_appearance_mode(saved_theme)
+                    
+                    saved_lang = settings.get("language", "English")
+                    self.language_var.set(saved_lang)
                     
                     self.log("Settings loaded successfully.")
             else:
                 self.log("Settings file not found, using default settings (False).")
                 self.theme_var.set("Dark")
+                self.language_var.set("English")
                 ctk.set_appearance_mode("Dark")
                 
         except (json.JSONDecodeError, IOError) as e:
             self.log(f"Could not load settings file, using defaults: {e}")
             self.theme_var.set("Dark")
+            self.language_var.set("English")
             ctk.set_appearance_mode("Dark")
 
     def save_settings(self):
@@ -2040,7 +2066,8 @@ class IranDNSSwitcher:
                 "minimize_to_tray": self.tray_var.get(),
                 "enable_ipv6": self.ipv6_var.get(),
                 "enable_doh": self.doh_var.get(),
-                "theme": self.theme_var.get() # --- NEW: Saving theme settings ---
+                "theme": self.theme_var.get(),
+                "language": self.language_var.get()
             }
             with open(self.settings_file, 'w') as f:
                 json.dump(settings, f, indent=4)
@@ -2059,6 +2086,9 @@ class IranDNSSwitcher:
 
         self.log(f"Startup (from registry): {'Enabled' if is_in_registry else 'Disabled'}")
         self.log(f"Minimize to Tray (from file): {'Enabled' if self.tray_var.get() else 'Disabled'}")
+        
+        # Initial Language update if needed
+        self.update_ui_texts()
 
     def _get_app_path(self):
         """Gets the correct path for the executable, works for frozen (.exe) and scripts (.py)."""
@@ -2082,7 +2112,7 @@ class IranDNSSwitcher:
             return True
         except Exception as e:
             self.log(f"Error adding to startup: {e}")
-            messagebox.showerror("Registry Error", f"Failed to add to startup:\n{e}")
+            messagebox.showerror(self.tr("Registry Error"), self.tr("Failed to add to startup:\n{e}").format(e=e))
             return False
 
     def remove_from_startup(self):
@@ -2100,7 +2130,7 @@ class IranDNSSwitcher:
             return True 
         except Exception as e:
             self.log(f"Error removing from startup: {e}")
-            messagebox.showerror("Registry Error", f"Failed to remove from startup:\n{e}")
+            messagebox.showerror(self.tr("Registry Error"), self.tr("Failed to remove from startup:\n{e}").format(e=e))
             return False
 
     def _is_in_startup(self):
@@ -2194,7 +2224,7 @@ class IranDNSSwitcher:
             return
 
         self.url_scanner_window = ctk.CTkToplevel(self.root)
-        self.url_scanner_window.title("Sanction Bypass Scanner")
+        self.url_scanner_window.title(self.tr("Sanction Bypass Scanner"))
         
         # Center the new window relative to the main window
         window_width = 500
@@ -2221,7 +2251,7 @@ class IranDNSSwitcher:
 
         title_label = ctk.CTkLabel(
             dialog_frame,
-            text="Find Working DNS for Restricted Websites",
+            text=self.tr("Find Working DNS for Restricted Websites"),
             font=self.font_section_title,
             text_color=self.colors['text_primary']
         )
@@ -2240,21 +2270,21 @@ class IranDNSSwitcher:
 
         ctk.CTkCheckBox(
             cb_frame,
-            text="Iranian DNS",
+            text=self.tr("Iranian DNS"),
             variable=self.scan_iranian_var,
             font=self.font_info_text
         ).pack(side="left", padx=(0, 10))
         
         ctk.CTkCheckBox(
             cb_frame,
-            text="Foreign DNS",
+            text=self.tr("Foreign DNS"),
             variable=self.scan_foreign_var,
             font=self.font_info_text
         ).pack(side="left", padx=(0, 10))
         
         ctk.CTkCheckBox(
             cb_frame,
-            text="Custom DNS",
+            text=self.tr("Custom DNS"),
             variable=self.scan_custom_var,
             font=self.font_info_text
         ).pack(side="left")
@@ -2267,7 +2297,7 @@ class IranDNSSwitcher:
 
         url_entry = ctk.CTkEntry(
             input_frame,
-            placeholder_text="Website URL (e.g., spotify.com)",
+            placeholder_text=self.tr("Website URL (e.g., spotify.com)"),
             font=self.font_info_text,
             height=35
         )
@@ -2276,7 +2306,7 @@ class IranDNSSwitcher:
 
         stop_btn = ctk.CTkButton(
             input_frame,
-            text="Stop",
+            text=self.tr("Stop"),
             font=self.font_button_main,
             fg_color=self.colors['secondary_accent_gray'],
             hover_color=self.colors['secondary_accent_gray_hover'],
@@ -2288,7 +2318,7 @@ class IranDNSSwitcher:
         
         scan_btn = ctk.CTkButton(
             input_frame,
-            text="Scan",
+            text=self.tr("Scan"),
             font=self.font_button_main,
             fg_color=self.colors['primary_accent_main_red'],
             hover_color=self.colors['primary_accent_hover_red'],
@@ -2312,7 +2342,7 @@ class IranDNSSwitcher:
         
         self.working_dns_combo = ctk.CTkOptionMenu(
             action_frame, 
-            values=["Waiting for scan..."], 
+            values=[self.tr("Waiting for scan...")], 
             state="disabled", 
             font=self.font_info_text,
             fg_color=self.colors['secondary_accent_gray'],
@@ -2324,7 +2354,7 @@ class IranDNSSwitcher:
         
         self.connect_working_btn = ctk.CTkButton(
             action_frame, 
-            text="Connect to Selected", 
+            text=self.tr("Connect to Selected"), 
             font=self.font_button_main, 
             fg_color=self.colors['success'], 
             hover_color=self.lighten_hex_color(self.colors['success'], 0.15), 
@@ -2339,7 +2369,7 @@ class IranDNSSwitcher:
 
     def connect_from_scanner(self):
         dns_name = self.working_dns_combo.get()
-        if not dns_name or dns_name in ["No working DNS found", "Waiting for scan...", "Scanning..."]:
+        if not dns_name or dns_name in [self.tr("No working DNS found"), self.tr("Waiting for scan..."), self.tr("Scanning...")]:
             return
             
         dns_servers_list = None
@@ -2361,8 +2391,8 @@ class IranDNSSwitcher:
         url = url.strip()
         if not url:
             messagebox.showwarning(
-                "Input Error",
-                "Please enter a valid URL.",
+                self.tr("Input Error"),
+                self.tr("Please enter a valid URL."),
                 parent=self.url_scanner_window
             )
             return
@@ -2377,8 +2407,8 @@ class IranDNSSwitcher:
 
         if not servers_to_test:
             messagebox.showwarning(
-                "Selection Error",
-                "Please select at least one DNS category to scan.",
+                self.tr("Selection Error"),
+                self.tr("Please select at least one DNS category to scan."),
                 parent=self.url_scanner_window
             )
             return
@@ -2386,11 +2416,11 @@ class IranDNSSwitcher:
         self.stop_scan_flag = False
 
         text_box.delete("1.0", "end")
-        scan_btn.configure(state="disabled", text="Scanning...")
+        scan_btn.configure(state="disabled", text=self.tr("Scanning..."))
         stop_btn.configure(state="normal", fg_color=self.colors['primary_accent_main_red'])
         
-        self.working_dns_combo.configure(values=["Scanning..."], state="disabled")
-        self.working_dns_combo.set("Scanning...")
+        self.working_dns_combo.configure(values=[self.tr("Scanning...")], state="disabled")
+        self.working_dns_combo.set(self.tr("Scanning..."))
         self.connect_working_btn.configure(state="disabled")
         
         scan_thread = threading.Thread(
@@ -2412,19 +2442,19 @@ class IranDNSSwitcher:
             
             initial_domain = initial_domain.split(':')[0]
 
-            self.root.after(0, lambda: text_box.insert("end", f"Target Domain: {initial_domain}\n"))
+            self.root.after(0, lambda: text_box.insert("end", self.tr("Target Domain: {domain}\n").format(domain=initial_domain)))
             self.root.after(0, lambda: text_box.insert("end", "-"*45 + "\n"))
 
             for name, ips in servers_to_test.items():
                 if getattr(self, 'stop_scan_flag', False):
-                    self.root.after(0, lambda: text_box.insert("end", "⚠️ Scan stopped by user.\n"))
+                    self.root.after(0, lambda: text_box.insert("end", self.tr("⚠️ Scan stopped by user.\n")))
                     break
 
                 if not ips or not ips[0]:
                     continue
                 primary_ip = ips[0]
                 
-                self.root.after(0, lambda n=name: text_box.insert("end", f"Testing {n} ... "))
+                self.root.after(0, lambda n=name: text_box.insert("end", self.tr("Testing {name} ... ").format(name=n)))
                 self.root.after(0, text_box.see, "end")
 
                 try:
@@ -2492,9 +2522,9 @@ class IranDNSSwitcher:
                                             
                                             if any(code in status_line for code in ["200", "201", "202"]):
                                                 if "Access Denied" in response or "403 Forbidden" in response:
-                                                     self.root.after(0, lambda: text_box.insert("end", f"❌ Blocked (Access Denied by Firewall)\n"))
+                                                     self.root.after(0, lambda: text_box.insert("end", self.tr("❌ Blocked (Access Denied by Firewall)\n")))
                                                 else:
-                                                     self.root.after(0, lambda sl=status_line: text_box.insert("end", f"✅ Works ({sl})\n"))
+                                                     self.root.after(0, lambda sl=status_line: text_box.insert("end", self.tr("✅ Works ({status})\n").format(status=sl)))
                                                      working_servers.append(name)
                                                 break 
                                                 
@@ -2506,55 +2536,55 @@ class IranDNSSwitcher:
                                                     new_domain = urllib.parse.urlparse(abs_url).netloc.split(':')[0]
                                                     
                                                     if new_domain == current_domain:
-                                                        self.root.after(0, lambda: text_box.insert("end", f"✅ Works (Internal Redirect)\n"))
+                                                        self.root.after(0, lambda: text_box.insert("end", self.tr("✅ Works (Internal Redirect)\n")))
                                                         working_servers.append(name)
                                                         break
                                                     else:
-                                                        self.root.after(0, lambda nd=new_domain: text_box.insert("end", f"-> {nd} ... "))
+                                                        self.root.after(0, lambda nd=new_domain: text_box.insert("end", self.tr("-> {domain} ... ").format(domain=nd)))
                                                         current_domain = new_domain
                                                         redirect_count += 1
                                                 else:
-                                                    self.root.after(0, lambda: text_box.insert("end", f"⚠️ Redirected without Location header.\n"))
+                                                    self.root.after(0, lambda: text_box.insert("end", self.tr("⚠️ Redirected without Location header.\n")))
                                                     break
                                             
                                             elif "403" in status_line or "401" in status_line:
-                                                self.root.after(0, lambda sl=status_line: text_box.insert("end", f"❌ Blocked ({sl})\n"))
+                                                self.root.after(0, lambda sl=status_line: text_box.insert("end", self.tr("❌ Blocked ({status})\n").format(status=sl)))
                                                 break
                                             else:
-                                                self.root.after(0, lambda sl=status_line: text_box.insert("end", f"⚠️ Reached, but: {sl}\n"))
+                                                self.root.after(0, lambda sl=status_line: text_box.insert("end", self.tr("⚠️ Reached, but: {status}\n").format(status=sl)))
                                                 break
                                                 
                                 except socket.timeout:
-                                    self.root.after(0, lambda: text_box.insert("end", "❌ Failed (Timeout)\n"))
+                                    self.root.after(0, lambda: text_box.insert("end", self.tr("❌ Failed (Timeout)\n")))
                                     break
                                 except Exception:
-                                    self.root.after(0, lambda: text_box.insert("end", "❌ Failed (Connection Error)\n"))
+                                    self.root.after(0, lambda: text_box.insert("end", self.tr("❌ Failed (Connection Error)\n")))
                                     break
                             else:
-                                self.root.after(0, lambda: text_box.insert("end", "❌ Domain Resolution Failed\n"))
+                                self.root.after(0, lambda: text_box.insert("end", self.tr("❌ Domain Resolution Failed\n")))
                                 break
                         else:
-                            self.root.after(0, lambda: text_box.insert("end", "❌ DNS Error\n"))
+                            self.root.after(0, lambda: text_box.insert("end", self.tr("❌ DNS Error\n")))
                             break
                             
                     else:
                         if not getattr(self, 'stop_scan_flag', False):
-                            self.root.after(0, lambda: text_box.insert("end", "❌ Failed (Too many redirects)\n"))
+                            self.root.after(0, lambda: text_box.insert("end", self.tr("❌ Failed (Too many redirects)\n")))
                         
                 except subprocess.TimeoutExpired:
-                    self.root.after(0, lambda: text_box.insert("end", "❌ Timeout (nslookup)\n"))
+                    self.root.after(0, lambda: text_box.insert("end", self.tr("❌ Timeout (nslookup)\n")))
                 except Exception as e:
-                    self.root.after(0, lambda err=e: text_box.insert("end", f"❌ Error: {err}\n"))
+                    self.root.after(0, lambda err=e: text_box.insert("end", self.tr("❌ Error: {e}\n").format(e=err)))
                 
                 self.root.after(0, text_box.see, "end")
 
             if not getattr(self, 'stop_scan_flag', False):
-                self.root.after(0, lambda: text_box.insert("end", "-"*45 + "\nScan complete.\n"))
+                self.root.after(0, lambda: text_box.insert("end", "-"*45 + "\n" + self.tr("Scan complete.\n")))
 
         except Exception as e:
             self.root.after(0, lambda err=e: text_box.insert("end", f"\nError: {str(err)}\n"))
         finally:
-            self.root.after(0, lambda: scan_btn.configure(state="normal", text="Scan"))
+            self.root.after(0, lambda: scan_btn.configure(state="normal", text=self.tr("Scan")))
             self.root.after(0, lambda: stop_btn.configure(
                 state="disabled",
                 fg_color=self.colors['secondary_accent_gray']
@@ -2570,10 +2600,10 @@ class IranDNSSwitcher:
                 self.root.after(0, lambda: self.connect_working_btn.configure(state="normal"))
             else:
                 self.root.after(0, lambda: self.working_dns_combo.configure(
-                    values=["No working DNS found"],
+                    values=[self.tr("No working DNS found")],
                     state="disabled"
                 ))
-                self.root.after(0, lambda: self.working_dns_combo.set("No working DNS found"))
+                self.root.after(0, lambda: self.working_dns_combo.set(self.tr("No working DNS found")))
                 self.root.after(0, lambda: self.connect_working_btn.configure(state="disabled"))
 
     def run(self):
@@ -2590,7 +2620,6 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    # SINGLE INSTANCE CHECK (MUTEX) 
     mutex_name = "Global\\IranDNSSwitcher_MehrshadAsgary_Mutex"
     mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
     last_error = ctypes.windll.kernel32.GetLastError()
