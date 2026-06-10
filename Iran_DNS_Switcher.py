@@ -1,4 +1,4 @@
-                                                # Iran DNS Changer version 2.7
+                                                 # Iran DNS Changer version 2.7
 
 # --- Imports ---
 import customtkinter as ctk
@@ -40,7 +40,6 @@ class IranDNSSwitcher:
         self.root.title("Iran DNS Switcher")
         self.root.resizable(False, False)
 
-        # --- Version and GitHub Info for Update Check ---
         self.current_version = "v2.7"
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
         
@@ -63,6 +62,17 @@ class IranDNSSwitcher:
                 "Settings": "تنظیمات",
                 "Log": "لاگ (گزارش)",
                 "Update DNS List": "بروزرسانی لیست",
+                "Help": "راهنما",
+                "Help file (help.pdf) not found.": "فایل راهنما (help.pdf) در پوشه برنامه یافت نشد.",
+                "Help / FAQ": "راهنما / سوالات متداول",
+                "1. URL Scanner:": "۱. اسکنر آدرس:",
+                "Enter a blocked website URL. The scanner tests all DNS servers and finds the ones that bypass the block.": "آدرس سایت تحریم شده را وارد کنید. اسکنر تمام دی ان اس ها را تست کرده و موردی که تحریم را دور می‌زند پیدا می‌کند.",
+                "2. DoH (DNS over HTTPS):": "۲. پروتکل DoH:",
+                "Encrypts your DNS requests. This increases privacy and helps bypass deep packet inspection (DPI). Recommended for Windows 11+.": "درخواست‌های دی ان اس شما را رمزنگاری می‌کند. این کار امنیت را افزایش داده و به دور زدن فیلترینگ پیشرفته (DPI) کمک می‌کند. (پیشنهاد برای ویندوز ۱۱+)",
+                "3. IPv6 Anti-Leak:": "۳. جلوگیری از نشت IPv6:",
+                "If enabled without custom IPv6 servers, it blocks IPv6 traffic to prevent your real ISP DNS from leaking.": "اگر فعال باشد و آی‌پی نسخه ۶ وارد نکرده باشید، ترافیک IPv6 را مسدود می‌کند تا از نشت دی ان اس اصلی اینترنت شما جلوگیری شود.",
+                "4. Network Selection:": "۴. انتخاب شبکه:",
+                "If 'Auto-detect' fails (e.g., due to active VPNs), manually select your Wi-Fi or Ethernet adapter from the 'Network' menu.": "اگر تشخیص خودکار به دلیل روشن بودن VPN و... کار نکرد، کارت شبکه خود (وای‌فای یا لن) را به صورت دستی از منوی 'شبکه' انتخاب کنید.",
                 "Run on Windows Startup": "اجرا هنگام روشن شدن ویندوز",
                 "Minimize to System Tray": "کوچک کردن در System Tray",
                 "Enable IPv6 Support": "فعال‌سازی پشتیبانی IPv6",
@@ -75,7 +85,7 @@ class IranDNSSwitcher:
                 "Persian": "فارسی",
                 "Contact Me": "ارتباط با من",
                 "Developed by Mehrshad Asgary": "توسعه یافته توسط مهرشاد عسگری",
-                "Auto-detect (Default)": "تشخیص خودکار (پیش‌فرض)",
+                "Auto-detect (Default)": " خودکار (پیش‌فرض)",
                 "No interfaces found": "هیچ شبکه‌ای یافت نشد",
                 "No DNS servers in '{category}' category.": "هیچ دی ان اس در دسته '{category}' یافت نشد.",
                 "Application Log": "لاگ برنامه",
@@ -428,6 +438,7 @@ class IranDNSSwitcher:
         self.network_btn.configure(text=self.tr("Network"))
         self.url_scanner_btn.configure(text=self.tr("URL Scanner"))
         self.settings_menubutton.configure(text=self.tr("Settings"))
+        self.help_btn.configure(text=self.tr("Help"))
         self.log_btn.configure(text=self.tr("Log"))
         self.update_dns_btn.configure(text=self.tr("Update DNS List"))
         
@@ -624,6 +635,14 @@ class IranDNSSwitcher:
         self.settings_menubutton.pack(side="left")
 
         self._rebuild_settings_menu()
+
+        # Help Button
+        self.help_btn = ctk.CTkButton(
+            self.menu_bar_frame, text=self.tr("Help"), font=self.font_button_main,
+            fg_color="transparent", text_color=self.colors['text_primary'], hover_color=self.colors['secondary_accent_gray'],
+            width=60, corner_radius=0, command=self.open_help_pdf
+        )
+        self.help_btn.pack(side="left")
 
         # Log Button
         self.log_btn = ctk.CTkButton(
@@ -940,6 +959,24 @@ class IranDNSSwitcher:
         
         close_btn = ctk.CTkButton(dialog_frame, text=self.tr("Close"), command=self.log_window.destroy, font=self.font_button_main, fg_color=self.colors['secondary_accent_gray'], hover_color=self.colors['secondary_accent_gray_hover'])
         close_btn.grid(row=1, column=1, padx=5, pady=5)
+
+    def open_help_pdf(self):
+        """Opens the help.pdf file located in the application directory."""
+        base_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        pdf_path = os.path.join(base_dir, "help.pdf")
+        
+        self.log(f"Attempting to open help file at: {pdf_path}")
+        
+        if os.path.exists(pdf_path):
+            try:
+                os.startfile(pdf_path)
+                self.log("Help file opened successfully.")
+            except Exception as e:
+                self.log(f"Failed to open help PDF: {e}")
+                messagebox.showerror(self.tr("Error"), self.tr("Failed to open link:\n{e}").format(e=e))
+        else:
+            self.log("Help file not found.")
+            messagebox.showerror(self.tr("Error"), self.tr("Help file (help.pdf) not found."))
 
     def check_for_updates(self):
         self.log("Checking for updates...")
