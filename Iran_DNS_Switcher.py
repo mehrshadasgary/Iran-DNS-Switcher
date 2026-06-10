@@ -1,6 +1,5 @@
-                                                 # Iran DNS Changer version 2.7
+                                            # Iran DNS Changer version 2.7
 
-# --- Imports ---
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
 import tkinter 
@@ -40,6 +39,7 @@ class IranDNSSwitcher:
         self.root.title("Iran DNS Switcher")
         self.root.resizable(False, False)
 
+        # --- Version and GitHub Info for Update Check ---
         self.current_version = "v2.7"
         self.github_repo = "mehrshadasgary/Iran-DNS-Switcher"
         
@@ -157,6 +157,7 @@ class IranDNSSwitcher:
                 "Import Failed": "خطا در ورود",
                 "Failed to import custom DNS. Ensure it's a valid JSON file.\nError: {e}": "خطا در وارد کردن دی ان اس. مطمئن شوید فایل JSON معتبر است.\nخطا: {e}",
                 "Input Error": "خطای ورودی",
+                "Primary IP (IPv4 or IPv6) cannot be empty.": "وارد کردن حداقل یک آی‌پی اصلی (IPv4 یا IPv6) الزامی است.",
                 "Primary IPv4 field cannot be empty.": "فیلد IPv4 اصلی نمی‌تواند خالی باشد.",
                 "Invalid IP": "آی‌پی نامعتبر",
                 "The primary IPv4 address '{ip}' is not valid.": "آدرس IPv4 اصلی '{ip}' معتبر نیست.",
@@ -830,9 +831,12 @@ class IranDNSSwitcher:
             base_color = category_colors.get(category_name)
             hover_color = self.lighten_hex_color(base_color, 0.15)
             
-            button_text = f"{dns_name} | ...\n{dns_values[0]}"
-            if len(dns_values) > 1 and dns_values[1]:
-                button_text += f" - {dns_values[1]}"
+            primary_display = dns_values[0] if dns_values[0] else (dns_values[2] if len(dns_values) > 2 else "")
+            secondary_display = dns_values[1] if dns_values[0] and len(dns_values) > 1 and dns_values[1] else (dns_values[3] if not dns_values[0] and len(dns_values) > 3 and dns_values[3] else "")
+            
+            button_text = f"{dns_name} | ...\n{primary_display}"
+            if secondary_display:
+                button_text += f" - {secondary_display}"
 
             btn = ctk.CTkButton(
                 self.dns_scroll_frame, text=button_text, font=self.font_dns_button_name, 
@@ -860,8 +864,9 @@ class IranDNSSwitcher:
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             futures = {}
             for dns_name, dns_values in dns_list.items():
-                primary_ip = dns_values[0]
-                futures[executor.submit(self.ping_dns_server, primary_ip)] = (dns_name, dns_values)
+                primary_ip = dns_values[0] if dns_values[0] else (dns_values[2] if len(dns_values) > 2 else "")
+                if primary_ip:
+                    futures[executor.submit(self.ping_dns_server, primary_ip)] = (dns_name, dns_values)
 
             for future in concurrent.futures.as_completed(futures):
                 if self.ping_generation != generation:
@@ -882,9 +887,12 @@ class IranDNSSwitcher:
         if dns_name in self.active_ping_buttons:
             btn = self.active_ping_buttons[dns_name]
             
-            new_text = f"{dns_name} | {ping_str}\n{dns_values[0]}"
-            if len(dns_values) > 1 and dns_values[1]:
-                new_text += f" - {dns_values[1]}"
+            primary_display = dns_values[0] if dns_values[0] else (dns_values[2] if len(dns_values) > 2 else "")
+            secondary_display = dns_values[1] if dns_values[0] and len(dns_values) > 1 and dns_values[1] else (dns_values[3] if not dns_values[0] and len(dns_values) > 3 and dns_values[3] else "")
+            
+            new_text = f"{dns_name} | {ping_str}\n{primary_display}"
+            if secondary_display:
+                new_text += f" - {secondary_display}"
             btn.configure(text=new_text)
 
     def get_all_network_interfaces(self):
@@ -1140,9 +1148,9 @@ class IranDNSSwitcher:
         # Iterate through all categories and their DNS servers
         for category, dns_list in self.dns_servers.items():
             for name, ips in dns_list.items():
-                if not ips or not ips[0]:
+                primary_ip = ips[0] if ips[0] else (ips[2] if len(ips) > 2 else "")
+                if not ips or not primary_ip:
                     continue
-                primary_ip = ips[0]
                 self.root.after(0, lambda n=name: self.status_label.configure(text=self.tr("Pinging {name}...").format(name=n)))
                 latency, display_string = self.ping_dns_server(primary_ip)
                 
@@ -1670,13 +1678,13 @@ class IranDNSSwitcher:
         primary_ipv6 = primary_ipv6.strip()
         secondary_ipv6 = secondary_ipv6.strip()
 
-        if not primary_dns:
+        if not primary_dns and not primary_ipv6:
             messagebox.showerror(self.tr("Input Error"),
-                                  self.tr("Primary IPv4 field cannot be empty."),
+                                  self.tr("Primary IP (IPv4 or IPv6) cannot be empty."),
                                     parent=self.add_dns_window)
             return
 
-        if not self.is_valid_ip(primary_dns):
+        if primary_dns and not self.is_valid_ip(primary_dns):
             messagebox.showerror(self.tr("Invalid IP"),
                                   self.tr("The primary IPv4 address '{ip}' is not valid.").format(ip=primary_dns),
                                     parent=self.add_dns_window)
@@ -1701,7 +1709,8 @@ class IranDNSSwitcher:
             return
         
         if not custom_name:
-            custom_name = f"Custom ({primary_dns})"
+            ip_for_name = primary_dns if primary_dns else primary_ipv6
+            custom_name = f"Custom ({ip_for_name})"
 
         if custom_name in self.dns_servers["Custom"]:
             messagebox.showwarning(self.tr("DNS Exists"),
@@ -1885,14 +1894,15 @@ class IranDNSSwitcher:
                 cmd_clear_static = f'netsh interface ipv4 delete dnsserver "{interface_name}" all'
                 subprocess.run(cmd_clear_static, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                                           
-                cmd_set_primary = f'netsh interface ipv4 set dns name="{interface_name}" static {primary_ipv4}'
-                self.log(f"Executing command: {cmd_set_primary}")
-                subprocess.run(cmd_set_primary, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
-                
-                if secondary_ipv4:
-                    cmd_add_secondary = f'netsh interface ipv4 add dns name="{interface_name}" addr={secondary_ipv4} index=2'
-                    self.log(f"Executing command: {cmd_add_secondary}")
-                    subprocess.run(cmd_add_secondary, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
+                if primary_ipv4:
+                    cmd_set_primary = f'netsh interface ipv4 set dns name="{interface_name}" static {primary_ipv4}'
+                    self.log(f"Executing command: {cmd_set_primary}")
+                    subprocess.run(cmd_set_primary, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
+                    
+                    if secondary_ipv4:
+                        cmd_add_secondary = f'netsh interface ipv4 add dns name="{interface_name}" addr={secondary_ipv4} index=2'
+                        self.log(f"Executing command: {cmd_add_secondary}")
+                        subprocess.run(cmd_add_secondary, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
                 # 2. Handling IPv6 with Anti-Leak
                 if is_ipv6_enabled:
@@ -1938,7 +1948,8 @@ class IranDNSSwitcher:
                 )
                 self.log(f"DNS for '{interface_name}' successfully changed to {dns_name}.")
                 
-                success_message = self.tr("DNS successfully changed to {name} for interface '{interface}'\n\nIPv4: {ip}").format(name=dns_name, interface=interface_name, ip=primary_ipv4)
+                display_ipv4 = primary_ipv4 if primary_ipv4 else "Auto (DHCP)"
+                success_message = self.tr("DNS successfully changed to {name} for interface '{interface}'\n\nIPv4: {ip}").format(name=dns_name, interface=interface_name, ip=display_ipv4)
                 if secondary_ipv4: 
                     success_message += f", {secondary_ipv4}"
                 
@@ -2487,9 +2498,9 @@ class IranDNSSwitcher:
                     self.root.after(0, lambda: text_box.insert("end", self.tr("⚠️ Scan stopped by user.\n")))
                     break
 
-                if not ips or not ips[0]:
+                primary_ip = ips[0] if ips[0] else (ips[2] if len(ips) > 2 else "")
+                if not ips or not primary_ip:
                     continue
-                primary_ip = ips[0]
                 
                 self.root.after(0, lambda n=name: text_box.insert("end", self.tr("Testing {name} ... ").format(name=n)))
                 self.root.after(0, text_box.see, "end")
