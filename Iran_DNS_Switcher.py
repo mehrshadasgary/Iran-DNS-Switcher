@@ -1,5 +1,6 @@
-                                            # Iran DNS Changer version 2.7
+                                                # Iran DNS Changer version 2.7
 
+# --- Imports ---
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
 import tkinter 
@@ -359,6 +360,9 @@ class IranDNSSwitcher:
                 "Rightel": ["91.239.100.100", "89.223.43.71"],
                 "NobarCloud": ["78.110.120.220", "78.110.120.200"],
                 "DynX": ["193.24.103.1", "193.24.103.2"],
+                "Bertina": ["193.186.32.32", ""],
+                "Hostiran": ["172.29.0.100", "172.29.2.100"],
+                "Vanilla": ["10.139.177.21", "10.139.177.22"],
             },
             "Foreign": {
                 "Google": ["8.8.8.8", "8.8.4.4", "2001:4860:4860::8888", "2001:4860:4860::8844"],
