@@ -1,4 +1,4 @@
-# Iran DNS Changer version 2.7
+                                                                                                                # Iran DNS Changer version 2.7
 
 # --- Imports ---
 import customtkinter as ctk
