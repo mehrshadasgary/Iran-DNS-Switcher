@@ -1,4 +1,4 @@
-                                                # Iran DNS Changer version 2.7
+# Iran DNS Changer version 2.7
 
 # --- Imports ---
 import customtkinter as ctk
@@ -1081,7 +1081,7 @@ class IranDNSSwitcher:
             self.log(f"An unexpected error occurred during DNS list update: {e}")
             self.root.after(0, lambda: messagebox.showerror(self.tr("Update Error"), self.tr("An unexpected error occurred:\n\n{e}").format(e=e)))
             self.root.after(0, lambda: self.status_label.configure(text=self.tr("✗ Error: Unexpected update failure"), text_color=self.colors['error']))
-            
+                
     def refresh_dns_display_after_update(self):
         """Refreshes the UI after a successful DNS list update."""
         self.display_dns_for_category(self.current_category)
@@ -1853,6 +1853,17 @@ class IranDNSSwitcher:
 
             self.root.update_idletasks()
             
+            # Start thread to avoid freezing UI
+            threading.Thread(target=self._apply_dns_settings_threaded_logic, args=(dns_name, dns_servers_list, interface_name), daemon=True).start()
+
+        except Exception as e:
+            self.log(f"An unexpected error occurred during DNS change preparation: {e}")
+            messagebox.showerror(self.tr("Error"), self.tr("An unexpected error occurred:\n{e}").format(e=str(e)))
+            self.status_label.configure(text=self.tr("✗ Unexpected error during DNS change"),
+                                         text_color=self.colors['error'])
+
+    def _apply_dns_settings_threaded_logic(self, dns_name, dns_servers_list, interface_name):
+        try:
             cli_encoding = 'oem'
             
             primary_ipv4 = dns_servers_list[0] if len(dns_servers_list) > 0 else ""
@@ -1883,15 +1894,15 @@ class IranDNSSwitcher:
                 self.log(f"Executing command: {cmd_set_dhcp_v6}")
                 subprocess.run(cmd_set_dhcp_v6, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
 
-                self.status_label.configure(
+                self.root.after(0, lambda: self.status_label.configure(
                     text=self.tr("✓ DNS for '{interface}' set to Default (DHCP)").format(interface=interface_name), 
                     text_color=self.colors['success']
-                )
+                ))
                 self.log(f"DNS for '{interface_name}' successfully set to Default (DHCP).")
-                messagebox.showinfo(
+                self.root.after(0, lambda: messagebox.showinfo(
                     self.tr("Success"), 
                     self.tr("DNS successfully set to Default (DHCP) for interface '{interface}'").format(interface=interface_name)
-                )
+                ))
 
             else:
                 # 1. First, clear and apply IPv4
@@ -1907,6 +1918,10 @@ class IranDNSSwitcher:
                         cmd_add_secondary = f'netsh interface ipv4 add dns name="{interface_name}" addr={secondary_ipv4} index=2'
                         self.log(f"Executing command: {cmd_add_secondary}")
                         subprocess.run(cmd_add_secondary, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
+                else:
+                    cmd_set_dhcp = f'netsh interface ipv4 set dns name="{interface_name}" source=dhcp'
+                    self.log(f"Executing command: {cmd_set_dhcp}")
+                    subprocess.run(cmd_set_dhcp, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
                 # 2. Handling IPv6 with Anti-Leak
                 if is_ipv6_enabled:
@@ -1946,14 +1961,13 @@ class IranDNSSwitcher:
                 self.log(f"Executing command: {cmd_flush_dns}")
                 subprocess.run(cmd_flush_dns, shell=True, check=False, capture_output=True, text=True, encoding=cli_encoding, errors='ignore')
                 
-                self.status_label.configure(
+                self.root.after(0, lambda: self.status_label.configure(
                     text=self.tr("✓ DNS for '{interface}' changed to {name}").format(interface=interface_name, name=dns_name), 
                     text_color=self.colors['success']
-                )
+                ))
                 self.log(f"DNS for '{interface_name}' successfully changed to {dns_name}.")
                 
-                display_ipv4 = primary_ipv4 if primary_ipv4 else "Auto (DHCP)"
-                success_message = self.tr("DNS successfully changed to {name} for interface '{interface}'\n\nIPv4: {ip}").format(name=dns_name, interface=interface_name, ip=display_ipv4)
+                success_message = self.tr("DNS successfully changed to {name} for interface '{interface}'\n\nIPv4: {ip}").format(name=dns_name, interface=interface_name, ip=primary_ipv4 or "Auto (DHCP)")
                 if secondary_ipv4: 
                     success_message += f", {secondary_ipv4}"
                 
@@ -1967,13 +1981,13 @@ class IranDNSSwitcher:
                 if self.doh_var.get():
                     success_message += self.tr("\n\n🔒 DoH Enforced (Encrypted Connection)")
                     
-                messagebox.showinfo(self.tr("Success"), success_message)
+                self.root.after(0, lambda: messagebox.showinfo(self.tr("Success"), success_message))
                 
         except Exception as e:
             self.log(f"An unexpected error occurred during DNS change: {e}")
-            messagebox.showerror(self.tr("Error"), self.tr("An unexpected error occurred during DNS change:\n{e}").format(e=str(e)))
-            self.status_label.configure(text=self.tr("✗ Unexpected error during DNS change"),
-                                         text_color=self.colors['error'])
+            self.root.after(0, lambda err=e: messagebox.showerror(self.tr("Error"), self.tr("An unexpected error occurred during DNS change:\n{e}").format(e=str(err))))
+            self.root.after(0, lambda: self.status_label.configure(text=self.tr("✗ Unexpected error during DNS change"),
+                                         text_color=self.colors['error']))
     
     def show_current_dns(self):
         try:
@@ -2672,6 +2686,9 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
+    # ==========================================
+    # --- SINGLE INSTANCE CHECK (MUTEX) ---
+    # ==========================================
     mutex_name = "Global\\IranDNSSwitcher_MehrshadAsgary_Mutex"
     mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
     last_error = ctypes.windll.kernel32.GetLastError()
